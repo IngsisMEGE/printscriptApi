@@ -38,5 +38,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/asecapocotesteable/controltowerpt:latest
-            ghcr.io/asecapocotesteable/controltowerpt:${{ env.VERSION }}
+            ghcr.io/ingsismege/printscriptapi:latest
+            ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
