@@ -36,7 +36,7 @@ jobs:
         id: extract_version
         run: |
           # Attempt to get the latest tag in the repository
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [[ -z "$latest_tag" ]]; then
             # Fallback to commit hash if no tags are found
             VERSION=$(git rev-parse --short HEAD)
@@ -44,6 +44,7 @@ jobs:
             VERSION=$latest_tag
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION: $VERSION"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
