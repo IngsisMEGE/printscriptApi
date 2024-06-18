@@ -39,11 +39,13 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           else
-            # Check for the latest tag in the repository
-            VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
-            # If no tags are found, use a descriptive version
-            if [[ -z "$VERSION" ]]; then
-              VERSION=$(git describe --tags --always)
+            # Attempt to get the latest tag in the repository
+            TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
+            if [[ -z "$TAG" ]]; then
+              # Fallback to commit hash if no tags are found
+              VERSION=$(git rev-parse --short HEAD)
+            else
+              VERSION=$TAG
             fi
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
