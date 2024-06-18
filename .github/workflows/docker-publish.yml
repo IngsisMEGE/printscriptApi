@@ -34,7 +34,11 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          VERSION=$(git describe --tags --always)
+          if [ -n "$(git describe --tags --exact-match 2>/dev/null)" ]; then
+            VERSION=$(git describe --tags --exact-match)
+          else
+            VERSION=$(git describe --tags --always)
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build and push Docker image
@@ -43,4 +47,5 @@ jobs:
           context: .
           push: true
           tags: |
+            ghcr.io/ingsismege/printscriptapi:latest
             ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
