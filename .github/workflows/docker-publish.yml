@@ -36,10 +36,15 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           else
-            VERSION=$(git describe --tags --always)
+            # Check for the latest tag in the repository
+            VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+            # If no tags are found, use a descriptive version
+            if [[ -z "$VERSION" ]]; then
+              VERSION=$(git describe --tags --always)
+            fi
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
