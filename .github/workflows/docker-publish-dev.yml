@@ -1,4 +1,4 @@
-name: Publish Docker image from main
+name: Publish Docker image from dev
 
 permissions:
   contents: read
