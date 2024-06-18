@@ -1,4 +1,4 @@
-name: Publish Docker image
+name: Publish Docker image from main
 
 permissions:
   contents: read
@@ -7,13 +7,12 @@ permissions:
 
 on:
   push:
-    tags:  # Run the workflow when a tag is pushed
-      - '*'
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -36,17 +35,12 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+          if [[ -z "$latest_tag" ]]; then
+            # Fallback to commit hash if no tags are found
+            VERSION=$(git rev-parse --short HEAD)
           else
-            # Attempt to get the latest tag in the repository
-            TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
-            if [[ -z "$TAG" ]]; then
-              # Fallback to commit hash if no tags are found
-              VERSION=$(git rev-parse --short HEAD)
-            else
-              VERSION=$TAG
-            fi
+            VERSION=$latest_tag
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
