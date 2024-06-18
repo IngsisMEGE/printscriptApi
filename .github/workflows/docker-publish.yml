@@ -1,5 +1,10 @@
 name: Publish Docker image
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 on:
   push:
     branches:
@@ -38,5 +43,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/asecapocotesteable/controltowerpt:latest
-            ghcr.io/asecapocotesteable/controltowerpt:${{ env.VERSION }}
+            ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
