@@ -36,11 +36,10 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          TAG=$(git tag --sort=-creatordate | head -n 1)
-          if [[ -z "$TAG" ]]; then
-            VERSION=$(git describe --tags --always)
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
           else
-            VERSION=$TAG
+            VERSION=$(git describe --tags --always)
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
