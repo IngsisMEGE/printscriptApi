@@ -57,4 +57,5 @@ jobs:
           context: .
           push: true
           tags: |
+            ghcr.io/ingsismege/printscriptapi:latest.SNAPSHOT
             ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}.SNAPSHOT
