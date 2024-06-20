@@ -46,5 +46,5 @@ jobs:
             ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
             ghcr.io/ingsismege/printscriptapi:latest
           secrets: |
-            username=${{ secrets.USERNAME }}
-            token=${{ secrets.TOKEN }}
+            username=${{ github.actor  }}
+            token=${{ secrets.GITHUB_TOKEN }}
