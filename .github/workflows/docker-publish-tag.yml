@@ -45,3 +45,6 @@ jobs:
           tags: |
             ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
             ghcr.io/ingsismege/printscriptapi:latest
+          secrets: |
+            username=${{ secrets.USERNAME }}
+            token=${{ secrets.TOKEN }}

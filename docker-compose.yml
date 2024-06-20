@@ -8,15 +8,25 @@ services:
     env_file:
       - .env
 
-  spring-app:
+  printscriptapi:
+    image: my-app
     build:
       context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
       - postgres
-    env_file:
-      - .env
+    secrets:
+      - username
+      - token
 
+secrets:
+  username:
+    file: ./secrets/username
+  token:
+    file: ./secrets/token
 volumes:
   postgres_data:

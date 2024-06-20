@@ -17,7 +17,7 @@ gradle.properties
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
+secrets
 ### IntelliJ IDEA ###
 .idea
 *.iws

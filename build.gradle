@@ -21,8 +21,8 @@ repositories {
 	maven {
 		url = uri("https://maven.pkg.github.com/IngsisMEGE/printScript-2024")
 		credentials {
-			username = project.findProperty("gpr.user")?.toString() ?: System.getenv("USERNAME")
-			password = project.findProperty("gpr.token")?.toString() ?: System.getenv("TOKEN")
+			username = project.findProperty("USERNAME")?.toString() ?: System.getenv("USERNAME")
+			password = project.findProperty("TOKEN")?.toString() ?: System.getenv("TOKEN")
 		}
 	}
 }

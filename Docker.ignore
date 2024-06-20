@@ -15,7 +15,7 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
+gradle.properties
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -24,7 +24,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-
+secrets
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
