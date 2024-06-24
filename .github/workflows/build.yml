@@ -30,8 +30,8 @@ jobs:
 
       - name: Create.env file
         run: |
-          echo "BUCKET_URL=""Hello"" >> .env
-          echo "RULE_URL=""LOL"" >> .env
+          echo "BUCKET_URL="Hello"" >> .env
+          echo "RULE_URL="LOL"" >> .env
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
