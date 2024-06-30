@@ -7,4 +7,10 @@ interface AssetService {
         container: String,
         key: Long,
     ): Mono<String>
+
+    fun saveSnippet(
+        container: String,
+        snippetId: Long,
+        snippet: String,
+    ): Mono<String>
 }

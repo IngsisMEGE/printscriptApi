@@ -1,27 +1,69 @@
 package printscript.service.services.serviceImpl
 
 import org.example.PrintScript
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
+import printscript.service.dto.SnippetWithRuleDTO
 import printscript.service.services.interfaces.AssetService
-import printscript.service.services.interfaces.PrintScriptService
+import printscript.service.services.interfaces.FormatService
 import printscript.service.services.interfaces.RuleService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 
 @Service
-class PrintScriptImpl(
+class FormatServiceImpl(
     private val assetService: AssetService,
     private val ruleService: RuleService,
-) : PrintScriptService {
-    override fun format(snippetData: SnippetData): Mono<String> {
+) : FormatService {
+    override fun format(
+        snippetData: SnippetData,
+        userData: Jwt,
+    ): Mono<String> {
         return ruleService.getFormatRules()
             .flatMap { formatRules ->
                 val formatRulesFilePath = createTempFileForRules(formatRules)
-                formatSnippet(snippetData, formatRulesFilePath)
+                formatSnippet(snippetData.snippetId, formatRulesFilePath)
                     .doFinally { cleanupFile(formatRulesFilePath) }
             }
             .onErrorResume { e -> Mono.error(Exception("Error getting format rules", e)) }
+    }
+
+    override fun formatWithRules(
+        snippetDataWithRules: SnippetWithRuleDTO,
+        userData: Jwt,
+    ): Mono<String> {
+        val formatRules = rulesToJSONString(snippetDataWithRules.rules)
+        val formatRulesPath = createTempFileForRules(formatRules)
+        return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath)
+            .doFinally { cleanupFile(formatRulesPath) }
+            .onErrorResume { e -> Mono.error(Exception("Error formatting snippet with rules", e)) }
+    }
+
+    override fun formatAndSave(
+        snippetData: SnippetData,
+        userData: Jwt,
+    ): Mono<String> {
+        return ruleService.getFormatRules()
+            .flatMap { formatRules ->
+                val formatRulesFilePath = createTempFileForRules(formatRules)
+                formatSnippet(snippetData.snippetId, formatRulesFilePath)
+                    .map {
+                        assetService.saveSnippet("snippets", snippetData.snippetId, it).block()
+                        it
+                    }
+                    .doFinally { cleanupFile(formatRulesFilePath) }
+            }
+            .onErrorResume { e -> Mono.error(Exception("Error getting format rules", e)) }
+    }
+
+    private fun rulesToJSONString(rules: List<RulesDTO>): String {
+        val rulesMap = mutableMapOf<String, String>()
+        rules.forEach { rule ->
+            rulesMap[rule.name] = rule.value
+        }
+        return rulesMap.toString()
     }
 
     private fun createTempFileForRules(formatRules: String): String {
@@ -33,10 +75,10 @@ class PrintScriptImpl(
     }
 
     private fun formatSnippet(
-        snippetData: SnippetData,
+        snippetId: Long,
         formatRulesFilePath: String,
     ): Mono<String> {
-        return assetService.getSnippet("snippets", snippetData.snippetId)
+        return assetService.getSnippet("snippets", snippetId)
             .flatMap { code ->
                 formatCode(code, formatRulesFilePath)
             }
