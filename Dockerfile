@@ -5,6 +5,7 @@ WORKDIR /home/gradle/src
 COPY build.gradle settings.gradle gradle/ ./
 COPY src ./src
 COPY .editorconfig ./
+COPY fakeEnv .env
 
 # Read secrets from the mounted secrets files and export them as environment variables
 RUN --mount=type=secret,id=username,target=/run/secrets/username \
