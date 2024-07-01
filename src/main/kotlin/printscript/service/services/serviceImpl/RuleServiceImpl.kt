@@ -33,4 +33,21 @@ class RuleServiceImpl(
             }
             .bodyToMono<String>()
     }
+
+    override fun getLintingRules(): Mono<String> {
+        return webClient.post()
+            .uri("$ruleAPIURL/rules/lint")
+            .bodyValue("")
+            .retrieve()
+            .onStatus({ status -> status.is4xxClientError }) { response ->
+                response.bodyToMono<String>().flatMap { errorBody ->
+                    when (response.statusCode().value()) {
+                        400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
+                        404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
+                        else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
+                    }
+                }
+            }
+            .bodyToMono<String>()
+    }
 }

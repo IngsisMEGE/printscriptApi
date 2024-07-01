@@ -2,10 +2,11 @@ package printscript.service.dto
 
 data class RulesDTO(
     val name: String,
-    val value: String,
+    var value: String,
 )
 
 data class SnippetWithRuleDTO(
     val snippetId: Long,
-    val rules: List<RulesDTO>,
+    val formatRules: List<RulesDTO>,
+    val lintingRules: List<RulesDTO>,
 )
