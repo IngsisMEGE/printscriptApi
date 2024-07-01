@@ -20,7 +20,7 @@ class RuleServiceImpl(
 
     override fun getFormatRules(userData: Jwt): Mono<String> {
         return webClient.post()
-            .uri("$ruleAPIURL/rules/format")
+            .uri("$ruleAPIURL/rules/get/user/format")
             .header("Authorization", "Bearer ${userData.tokenValue}")
             .bodyValue("")
             .retrieve()
@@ -38,7 +38,7 @@ class RuleServiceImpl(
 
     override fun getLintingRules(userData: Jwt): Mono<String> {
         return webClient.post()
-            .uri("$ruleAPIURL/rules/lint")
+            .uri("$ruleAPIURL/rules/get/user/lint")
             .header("Authorization", "Bearer ${userData.tokenValue}")
             .bodyValue("")
             .retrieve()
