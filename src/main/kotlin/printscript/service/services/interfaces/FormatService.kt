@@ -15,9 +15,4 @@ interface FormatService {
         snippetDataWithRules: SnippetWithRuleDTO,
         userData: Jwt,
     ): Mono<String>
-
-    fun formatAndSave(
-        snippetData: SnippetData,
-        userData: Jwt,
-    ): Mono<String>
 }

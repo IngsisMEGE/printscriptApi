@@ -25,9 +25,15 @@ class FormatServiceImpl(
             .flatMap { formatRules ->
                 val formatRulesFilePath = createTempFileForRules(formatRules)
                 formatSnippet(snippetData.snippetId, formatRulesFilePath)
-                    .doFinally { cleanupFile(formatRulesFilePath) }
+                    .doOnTerminate {
+                        cleanupFile("formatterConfig.json")
+                        cleanupFile(formatRulesFilePath)
+                    }
             }
-            .onErrorResume { e -> Mono.error(Exception("Error getting format rules", e)) }
+            .onErrorResume { e ->
+                println("Error encountered: ${e.message}")
+                Mono.error(Exception(e.message, e))
+            }
     }
 
     override fun formatWithRules(
@@ -37,25 +43,11 @@ class FormatServiceImpl(
         val formatRules = rulesToJSONString(snippetDataWithRules.rules)
         val formatRulesPath = createTempFileForRules(formatRules)
         return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath)
-            .doFinally { cleanupFile(formatRulesPath) }
-            .onErrorResume { e -> Mono.error(Exception("Error formatting snippet with rules", e)) }
-    }
-
-    override fun formatAndSave(
-        snippetData: SnippetData,
-        userData: Jwt,
-    ): Mono<String> {
-        return ruleService.getFormatRules()
-            .flatMap { formatRules ->
-                val formatRulesFilePath = createTempFileForRules(formatRules)
-                formatSnippet(snippetData.snippetId, formatRulesFilePath)
-                    .map {
-                        assetService.saveSnippet("snippets", snippetData.snippetId, it).block()
-                        it
-                    }
-                    .doFinally { cleanupFile(formatRulesFilePath) }
+            .doOnTerminate {
+                cleanupFile("formatterConfig.json")
+                cleanupFile(formatRulesPath)
             }
-            .onErrorResume { e -> Mono.error(Exception("Error getting format rules", e)) }
+            .onErrorResume { e -> Mono.error(Exception("Error formatting snippet with rules", e)) }
     }
 
     private fun rulesToJSONString(rules: List<RulesDTO>): String {

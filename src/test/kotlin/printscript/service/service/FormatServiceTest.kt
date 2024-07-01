@@ -6,11 +6,12 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
+import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
+import printscript.service.dto.SnippetWithRuleDTO
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleService
 import printscript.service.services.serviceImpl.FormatServiceImpl
-import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 
 class FormatServiceTest {
@@ -42,8 +43,6 @@ class FormatServiceTest {
         whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
 
         val result = printScriptService.format(SnippetData(1), jwt).block()
-
-        FileManagement.deleteTempFile("formatterConfig.json")
 
         assertEquals(
             "let x : number = 1;\n\nprintln(x);\n",
@@ -102,5 +101,75 @@ class FormatServiceTest {
             "let x : number = 1;\n\nprintln(x);\n",
             result,
         )
+    }
+
+    @Test
+    fun test006FormatWithRulesShouldWorkCorrectly() {
+        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+
+        val result =
+            printScriptService.formatWithRules(
+                SnippetWithRuleDTO(
+                    1,
+                    listOf(
+                        RulesDTO("DotFront", "1"),
+                        RulesDTO("DotBack", "1"),
+                        RulesDTO("EqualFront", "1"),
+                        RulesDTO("EqualBack", "1"),
+                        RulesDTO("amountOfLines", "1"),
+                    ),
+                ),
+                jwt,
+            ).block()
+
+        assertEquals(
+            "let x : number = 1;\n\nprintln(x);\n",
+            result,
+        )
+    }
+
+    @Test
+    fun test007FormatWithRulesShouldNotWorkIfLexerTokensAreNotFollowed() {
+        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:NoExisto = 1;\nprintln(x)"))
+
+        assertThrows<Exception> {
+            printScriptService.formatWithRules(
+                SnippetWithRuleDTO(
+                    1,
+                    listOf(
+                        RulesDTO("DotFront", "1"),
+                        RulesDTO("DotBack", "1"),
+                        RulesDTO("EqualFront", "1"),
+                        RulesDTO("EqualBack", "1"),
+                        RulesDTO("amountOfLines", "1"),
+                    ),
+                ),
+                jwt,
+            ).block()
+        }
+    }
+
+    @Test
+    fun test008FormatWithRulesThatViolateValueShouldNotWork() {
+        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+
+        val exception =
+            assertThrows<Exception> {
+                printScriptService.formatWithRules(
+                    SnippetWithRuleDTO(
+                        1,
+                        listOf(
+                            RulesDTO("DotFront", "-1"),
+                            RulesDTO("DotBack", "1"),
+                            RulesDTO("EqualFront", "1"),
+                            RulesDTO("EqualBack", "1"),
+                            RulesDTO("amountOfLines", "2"),
+                        ),
+                    ),
+                    jwt,
+                ).block()
+            }
+
+        assertEquals("java.lang.Exception: Error formatting snippet with rules", exception.message)
     }
 }

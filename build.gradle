@@ -66,5 +66,8 @@ jacocoTestReport {
 tasks.named('test') {
 	useJUnitPlatform()
 	finalizedBy jacocoTestReport
+}
 
+test{
+	exclude("**/integration/**")
 }

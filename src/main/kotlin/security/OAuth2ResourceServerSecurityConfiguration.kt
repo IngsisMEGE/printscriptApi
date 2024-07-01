@@ -3,8 +3,6 @@ package security
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod.GET
-import org.springframework.http.HttpMethod.POST
 import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -29,9 +27,7 @@ class OAuth2ResourceServerSecurityConfiguration(
         http.authorizeHttpRequests {
             it
                 .requestMatchers("/").permitAll()
-                .requestMatchers(GET, "/snippet").hasAuthority("SCOPE_read:snippets")
-                .requestMatchers(GET, "/snippets/*").hasAuthority("SCOPE_read:snippets")
-                .requestMatchers(POST, "/snippets").hasAuthority("SCOPE_write:snippets")
+                .requestMatchers("/format/*").hasAuthority("SCOPE_read:format")
                 .anyRequest().authenticated()
         }
             .oauth2ResourceServer { it.jwt(withDefaults()) }
