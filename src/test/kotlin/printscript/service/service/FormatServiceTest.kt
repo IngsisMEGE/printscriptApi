@@ -62,7 +62,7 @@ class FormatServiceTest {
 
     @Test
     fun test001FormatShouldWorkCorrectly() {
-        whenever(ruleService.getFormatRules()).thenReturn(
+        whenever(ruleService.getFormatRules(jwt)).thenReturn(
             Mono.just(
                 "{\n" +
                     "  \"DotFront\": \"1\",\n" +
@@ -76,7 +76,7 @@ class FormatServiceTest {
         )
 
         val lintRules = getLintRulesAsString()
-        whenever(ruleService.getLintingRules()).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
         whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
 
         val result = printScriptService.format(SnippetData(1), jwt).block()
@@ -89,9 +89,9 @@ class FormatServiceTest {
 
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(ruleService.getFormatRules()).thenReturn(Mono.just("format rules"))
+        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
         whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
-        whenever(ruleService.getLintingRules()).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -100,8 +100,8 @@ class FormatServiceTest {
 
     @Test
     fun test003ShouldThrowErrorWhenFormatRulesNotRetrieved() {
-        whenever(ruleService.getFormatRules()).thenReturn(Mono.error(Exception("Error getting format rules")))
-        whenever(ruleService.getLintingRules()).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.error(Exception("Error getting format rules")))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -110,7 +110,7 @@ class FormatServiceTest {
 
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
-        whenever(ruleService.getFormatRules()).thenReturn(Mono.just("format rules"))
+        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
         whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("invalid code"))
 
         assertThrows<Exception> {
@@ -120,7 +120,7 @@ class FormatServiceTest {
 
     @Test
     fun test005ShouldCleanupTempFilesAfterSuccessfulFormatting() {
-        whenever(ruleService.getFormatRules()).thenReturn(
+        whenever(ruleService.getFormatRules(jwt)).thenReturn(
             Mono.just(
                 "{\n" +
                     "  \"DotFront\": \"1\",\n" +
@@ -133,7 +133,7 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(ruleService.getLintingRules()).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
 
         whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 

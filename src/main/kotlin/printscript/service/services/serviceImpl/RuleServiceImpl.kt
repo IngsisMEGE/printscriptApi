@@ -3,6 +3,7 @@ package printscript.service.services.serviceImpl
 import io.github.cdimascio.dotenv.Dotenv
 import org.apache.coyote.BadRequestException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -17,9 +18,10 @@ class RuleServiceImpl(
 ) : RuleService {
     private val ruleAPIURL = dotenv["RULE_URL"]
 
-    override fun getFormatRules(): Mono<String> {
+    override fun getFormatRules(userData: Jwt): Mono<String> {
         return webClient.post()
             .uri("$ruleAPIURL/rules/format")
+            .header("Authorization", "Bearer ${userData.tokenValue}")
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
@@ -34,9 +36,10 @@ class RuleServiceImpl(
             .bodyToMono<String>()
     }
 
-    override fun getLintingRules(): Mono<String> {
+    override fun getLintingRules(userData: Jwt): Mono<String> {
         return webClient.post()
             .uri("$ruleAPIURL/rules/lint")
+            .header("Authorization", "Bearer ${userData.tokenValue}")
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->

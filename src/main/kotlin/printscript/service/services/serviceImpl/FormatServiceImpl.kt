@@ -21,9 +21,9 @@ class FormatServiceImpl(
         snippetData: SnippetData,
         userData: Jwt,
     ): Mono<String> {
-        return ruleService.getLintingRules().flatMap { lintingRules ->
+        return ruleService.getLintingRules(userData).flatMap { lintingRules ->
             val lintingRulesFilePath = createTempFileForRules(lintingRules)
-            ruleService.getFormatRules().flatMap { formatRules ->
+            ruleService.getFormatRules(userData).flatMap { formatRules ->
                 val formatRulesFilePath = createTempFileForRules(formatRules)
                 formatSnippet(snippetData.snippetId, formatRulesFilePath, lintingRulesFilePath)
                     .doOnTerminate {
