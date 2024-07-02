@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import printscript.service.dto.FormatSnippetWithRulesDTO
 import printscript.service.dto.SnippetData
-import printscript.service.dto.SnippetWithRuleDTO
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
 import reactor.core.publisher.Mono
@@ -28,7 +28,7 @@ class FormatController(private val printScriptService: FormatService, private va
 
     @PostMapping("/withRules")
     fun formatSnippetWithRules(
-        @RequestBody snippetDataWithRules: SnippetWithRuleDTO,
+        @RequestBody snippetDataWithRules: FormatSnippetWithRulesDTO,
         @AuthenticationPrincipal userData: Jwt,
     ): Mono<ResponseEntity<String>> {
         return printScriptService.formatWithRules(snippetDataWithRules, userData)
@@ -51,7 +51,7 @@ class FormatController(private val printScriptService: FormatService, private va
 
     @PostMapping("/withRules/save")
     fun formatSnippetWithRulesAndSave(
-        @RequestBody snippetDataWithRules: SnippetWithRuleDTO,
+        @RequestBody snippetDataWithRules: FormatSnippetWithRulesDTO,
         @AuthenticationPrincipal userData: Jwt,
     ): Mono<ResponseEntity<String>> {
         return printScriptService.formatWithRules(snippetDataWithRules, userData)

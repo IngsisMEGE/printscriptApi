@@ -1,16 +1,14 @@
 package printscript.service.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
+import printscript.service.dto.FormatSnippetWithRulesDTO
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
-import printscript.service.dto.SnippetWithRuleDTO
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleService
 import printscript.service.services.serviceImpl.FormatServiceImpl
@@ -27,8 +25,6 @@ class FormatServiceTest {
             .header("alg", "RS256") // Add the algorithm header (you may adjust this based on your JWT)
             .claim("email", "test@test.com") // Extract other claims as needed
             .build()
-
-    val objectMapper = ObjectMapper().registerModule(KotlinModule())
 
     val lintRules =
         listOf(
@@ -150,7 +146,7 @@ class FormatServiceTest {
 
         val result =
             printScriptService.formatWithRules(
-                SnippetWithRuleDTO(
+                FormatSnippetWithRulesDTO(
                     1,
                     listOf(
                         RulesDTO("DotFront", "1"),
@@ -176,7 +172,7 @@ class FormatServiceTest {
 
         assertThrows<Exception> {
             printScriptService.formatWithRules(
-                SnippetWithRuleDTO(
+                FormatSnippetWithRulesDTO(
                     1,
                     listOf(
                         RulesDTO("DotFront", "1"),
@@ -199,7 +195,7 @@ class FormatServiceTest {
         val exception =
             assertThrows<Exception> {
                 printScriptService.formatWithRules(
-                    SnippetWithRuleDTO(
+                    FormatSnippetWithRulesDTO(
                         1,
                         listOf(
                             RulesDTO("DotFront", "-1"),
@@ -232,7 +228,7 @@ class FormatServiceTest {
 
         val result =
             printScriptService.formatWithRules(
-                SnippetWithRuleDTO(
+                FormatSnippetWithRulesDTO(
                     1,
                     listOf(
                         RulesDTO("DotFront", "1"),

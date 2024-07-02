@@ -5,8 +5,14 @@ data class RulesDTO(
     var value: String,
 )
 
-data class SnippetWithRuleDTO(
+data class FormatSnippetWithRulesDTO(
     val snippetId: Long,
     val formatRules: List<RulesDTO>,
+    val lintingRules: List<RulesDTO>,
+)
+
+data class SCASnippetWithRulesDTO(
+    val snippetId: Long,
+    val scaRules: List<RulesDTO>,
     val lintingRules: List<RulesDTO>,
 )

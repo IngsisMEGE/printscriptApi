@@ -3,9 +3,9 @@ package printscript.service.services.serviceImpl
 import org.example.PrintScript
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import printscript.service.dto.FormatSnippetWithRulesDTO
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
-import printscript.service.dto.SnippetWithRuleDTO
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
 import printscript.service.services.interfaces.RuleService
@@ -42,7 +42,7 @@ class FormatServiceImpl(
     }
 
     override fun formatWithRules(
-        snippetDataWithRules: SnippetWithRuleDTO,
+        snippetDataWithRules: FormatSnippetWithRulesDTO,
         userData: Jwt,
     ): Mono<String> {
         val formatRules = rulesToJSONString(snippetDataWithRules.formatRules)
