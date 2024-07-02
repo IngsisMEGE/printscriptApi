@@ -75,9 +75,8 @@ class FormatServiceTest {
             ),
         )
 
-        val lintRules = getLintRulesAsString()
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
 
         val result = printScriptService.format(SnippetData(1), jwt).block()
 
@@ -90,8 +89,8 @@ class FormatServiceTest {
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
         whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -101,7 +100,7 @@ class FormatServiceTest {
     @Test
     fun test003ShouldThrowErrorWhenFormatRulesNotRetrieved() {
         whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.error(Exception("Error getting format rules")))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -111,7 +110,7 @@ class FormatServiceTest {
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
         whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("invalid code"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("invalid code"))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -133,9 +132,9 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(getLintRulesAsString()))
+        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
         val result = printScriptService.format(SnippetData(1), jwt).block()
 
@@ -147,7 +146,7 @@ class FormatServiceTest {
 
     @Test
     fun test006FormatWithRulesShouldWorkCorrectly() {
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
         val result =
             printScriptService.formatWithRules(
@@ -173,7 +172,7 @@ class FormatServiceTest {
 
     @Test
     fun test007FormatWithRulesShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:NoExisto = 1;\nprintln(x)"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto = 1;\nprintln(x)"))
 
         assertThrows<Exception> {
             printScriptService.formatWithRules(
@@ -195,7 +194,7 @@ class FormatServiceTest {
 
     @Test
     fun test008FormatWithRulesThatViolateValueShouldNotWork() {
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
         val exception =
             assertThrows<Exception> {
@@ -220,7 +219,7 @@ class FormatServiceTest {
 
     @Test
     fun test009FormatWithOtherLexerRulesShouldWork() {
-        whenever(assetService.getSnippet("snippets", 1)).thenReturn(Mono.just("var x:int = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("var x:int = 1;\nprintln(x);"))
 
         for (rule in lintRules) {
             rule.value =
@@ -260,17 +259,5 @@ class FormatServiceTest {
                     else -> rule.value
                 }
         }
-    }
-
-    private fun getLintRulesAsString(): String {
-        val rulesMap =
-            lintRules.associate { rule ->
-                rule.name to
-                    mapOf(
-                        "pattern" to rule.value,
-                        "type" to rule.name,
-                    )
-            }
-        return objectMapper.writeValueAsString(rulesMap)
     }
 }
