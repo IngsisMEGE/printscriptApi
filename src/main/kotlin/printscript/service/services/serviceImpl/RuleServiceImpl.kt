@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import printscript.service.dto.RulesDTO
 import printscript.service.exceptions.NotFoundException
 import printscript.service.services.interfaces.RuleService
 import reactor.core.publisher.Mono
@@ -36,7 +37,7 @@ class RuleServiceImpl(
             .bodyToMono<String>()
     }
 
-    override fun getLintingRules(userData: Jwt): Mono<String> {
+    override fun getLintingRules(userData: Jwt): Mono<List<RulesDTO>> {
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/lint")
             .header("Authorization", "Bearer ${userData.tokenValue}")
@@ -51,6 +52,6 @@ class RuleServiceImpl(
                     }
                 }
             }
-            .bodyToMono<String>()
+            .bodyToMono<List<RulesDTO>>()
     }
 }

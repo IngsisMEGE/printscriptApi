@@ -20,16 +20,13 @@ class AssetServiceImpl(
     @Autowired private val webClient: WebClient,
     @Autowired private val dotenv: Dotenv,
 ) : AssetService {
-    private val bucketURL = "${dotenv["BUCKET_URL"]}/v1/snippet"
+    private val bucketURL = "${dotenv["BUCKET_URL"]}/v1/asset/snippet"
 
-    override fun getSnippet(
-        container: String,
-        key: Long,
-    ): Mono<String> {
+    override fun getSnippet(snippetId: Long): Mono<String> {
         return mono {
             val response: Flow<DataBuffer> =
                 webClient.get()
-                    .uri("$bucketURL/$container/$key")
+                    .uri("$bucketURL/$snippetId")
                     .retrieve()
                     .onStatus({ status -> status.is4xxClientError }) { response ->
                         onStatus(response)
@@ -46,7 +43,6 @@ class AssetServiceImpl(
     }
 
     override fun saveSnippet(
-        container: String,
         snippetId: Long,
         snippet: String,
     ): Mono<String> {

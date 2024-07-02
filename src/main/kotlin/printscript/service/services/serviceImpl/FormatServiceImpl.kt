@@ -22,9 +22,9 @@ class FormatServiceImpl(
         userData: Jwt,
     ): Mono<String> {
         return ruleService.getLintingRules(userData).flatMap { lintingRules ->
-            val lintingRulesFilePath = createTempFileForRules(lintingRules)
+            val lintingRulesFilePath = FileManagement.createLexerRuleFile(lintingRules)
             ruleService.getFormatRules(userData).flatMap { formatRules ->
-                val formatRulesFilePath = createTempFileForRules(formatRules)
+                val formatRulesFilePath = FileManagement.createTempFileWithContent(formatRules)
                 formatSnippet(snippetData.snippetId, formatRulesFilePath, lintingRulesFilePath)
                     .doOnTerminate {
                         cleanupFile("formatterConfig.json")
@@ -46,7 +46,7 @@ class FormatServiceImpl(
         userData: Jwt,
     ): Mono<String> {
         val formatRules = rulesToJSONString(snippetDataWithRules.formatRules)
-        val formatRulesPath = createTempFileForRules(formatRules)
+        val formatRulesPath = FileManagement.createTempFileWithContent(formatRules)
         val lintingRulesPath = FileManagement.createLexerRuleFile(snippetDataWithRules.lintingRules)
         return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath, lintingRulesPath)
             .doOnTerminate {
@@ -64,20 +64,12 @@ class FormatServiceImpl(
         return rulesMap.toString()
     }
 
-    private fun createTempFileForRules(formatRules: String): String {
-        try {
-            return FileManagement.createTempFileWithContent(formatRules)
-        } catch (e: Exception) {
-            throw Exception("Error creating temp file for format rules", e)
-        }
-    }
-
     private fun formatSnippet(
         snippetId: Long,
         formatRulesFilePath: String,
         lintingRulesFilePath: String,
     ): Mono<String> {
-        return assetService.getSnippet("snippets", snippetId)
+        return assetService.getSnippet(snippetId)
             .flatMap { code ->
                 formatCode(code, formatRulesFilePath, lintingRulesFilePath)
             }

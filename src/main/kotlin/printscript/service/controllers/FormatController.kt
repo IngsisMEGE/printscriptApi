@@ -43,7 +43,7 @@ class FormatController(private val printScriptService: FormatService, private va
     ): Mono<ResponseEntity<String>> {
         return printScriptService.format(snippetData, userData)
             .map {
-                assetService.saveSnippet("snippets", snippetData.snippetId, it).block()
+                assetService.saveSnippet(snippetData.snippetId, it).block()
                 ResponseEntity.ok(it)
             }
             .onErrorResume { e -> Mono.just(ResponseEntity.badRequest().body(e.message)) }
@@ -56,7 +56,7 @@ class FormatController(private val printScriptService: FormatService, private va
     ): Mono<ResponseEntity<String>> {
         return printScriptService.formatWithRules(snippetDataWithRules, userData)
             .map {
-                assetService.saveSnippet("snippets", snippetDataWithRules.snippetId, it).block()
+                assetService.saveSnippet(snippetDataWithRules.snippetId, it).block()
                 ResponseEntity.ok(it)
             }
             .onErrorResume { e -> Mono.just(ResponseEntity.badRequest().body(e.message)) }
