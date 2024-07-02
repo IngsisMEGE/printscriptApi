@@ -8,4 +8,6 @@ interface RuleService {
     fun getFormatRules(userData: Jwt): Mono<String>
 
     fun getLintingRules(userData: Jwt): Mono<List<RulesDTO>>
+
+    fun getSCARules(userData: Jwt): Mono<List<RulesDTO>>
 }

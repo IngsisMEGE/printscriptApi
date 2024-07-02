@@ -54,4 +54,22 @@ class RuleServiceImpl(
             }
             .bodyToMono<List<RulesDTO>>()
     }
+
+    override fun getSCARules(userData: Jwt): Mono<List<RulesDTO>> {
+        return webClient.post()
+            .uri("$ruleAPIURL/rules/get/user/sca")
+            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .bodyValue("")
+            .retrieve()
+            .onStatus({ status -> status.is4xxClientError }) { response ->
+                response.bodyToMono<String>().flatMap { errorBody ->
+                    when (response.statusCode().value()) {
+                        400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
+                        404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
+                        else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
+                    }
+                }
+            }
+            .bodyToMono<List<RulesDTO>>()
+    }
 }
