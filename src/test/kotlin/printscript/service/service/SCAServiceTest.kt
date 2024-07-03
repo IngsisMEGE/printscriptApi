@@ -10,14 +10,14 @@ import printscript.service.dto.RulesDTO
 import printscript.service.dto.SCASnippetWithRulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.serviceImpl.SCAServiceImpl
 import reactor.core.publisher.Mono
 
 class SCAServiceTest {
     private var assetService: AssetService = mock()
-    private val ruleService: RuleService = mock()
-    private val scaService = SCAServiceImpl(assetService, ruleService)
+    private val ruleManagerService: RuleManagerService = mock()
+    private val scaService = SCAServiceImpl(assetService, ruleManagerService)
 
     val testJwt = "test"
     val jwt =
@@ -67,8 +67,8 @@ class SCAServiceTest {
     @Test
     fun test001AnalyzeCodeShouldWorkCorrectly() {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
-        whenever(ruleService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         val result = scaService.analyzeCode(SnippetData(1L), jwt).block()
 
@@ -78,8 +78,8 @@ class SCAServiceTest {
     @Test
     fun test002AnalyzeCodeViolatingRulesShouldThrowException() {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let CSAfa_fdasf : number = 1;"))
-        whenever(ruleService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertEquals("Invalid typing format in line 4 row 1", scaService.analyzeCode(SnippetData(1L), jwt).block())
     }
@@ -96,8 +96,8 @@ class SCAServiceTest {
 
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
 
-        whenever(ruleService.getSCARules(jwt)).thenReturn(Mono.just(cammelRules))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(cammelRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> { scaService.analyzeCode(SnippetData(1L), jwt).block() }
     }

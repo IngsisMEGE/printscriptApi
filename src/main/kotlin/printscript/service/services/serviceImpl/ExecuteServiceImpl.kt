@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.ExecuteService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 
 @Service
-class ExecuteServiceImpl(private val assetService: AssetService, private val ruleService: RuleService) : ExecuteService {
+class ExecuteServiceImpl(private val assetService: AssetService, private val ruleManagerService: RuleManagerService) : ExecuteService {
     override fun executeSnippet(
         snippet: SnippetData,
         userData: Jwt,
@@ -30,7 +30,7 @@ class ExecuteServiceImpl(private val assetService: AssetService, private val rul
     }
 
     private fun getLintingRules(userData: Jwt): Mono<String> {
-        return ruleService.getLintingRules(userData).flatMap { rules ->
+        return ruleManagerService.getLintingRules(userData).flatMap { rules ->
             Mono.just(FileManagement.createLexerRuleFile(rules))
         }
     }

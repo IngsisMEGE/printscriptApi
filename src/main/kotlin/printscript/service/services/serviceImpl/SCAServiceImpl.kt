@@ -7,13 +7,13 @@ import printscript.service.dto.RulesDTO
 import printscript.service.dto.SCASnippetWithRulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.interfaces.SCAService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 
 @Service
-class SCAServiceImpl(private val assetService: AssetService, private val ruleService: RuleService) : SCAService {
+class SCAServiceImpl(private val assetService: AssetService, private val ruleManagerService: RuleManagerService) : SCAService {
     override fun analyzeCode(
         snippet: SnippetData,
         userData: Jwt,
@@ -54,13 +54,13 @@ class SCAServiceImpl(private val assetService: AssetService, private val ruleSer
     }
 
     private fun getSCARules(userData: Jwt): Mono<String> {
-        return ruleService.getSCARules(userData).flatMap { rules ->
+        return ruleManagerService.getSCARules(userData).flatMap { rules ->
             Mono.just(FileManagement.creteSCARuleFile(rules))
         }
     }
 
     private fun getLintingRules(userData: Jwt): Mono<String> {
-        return ruleService.getLintingRules(userData).flatMap { rules ->
+        return ruleManagerService.getLintingRules(userData).flatMap { rules ->
             Mono.just(FileManagement.createLexerRuleFile(rules))
         }
     }

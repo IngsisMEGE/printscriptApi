@@ -11,14 +11,14 @@ import printscript.service.dto.FormatSnippetWithRulesDTO
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.serviceImpl.FormatServiceImpl
 import reactor.core.publisher.Mono
 
 class FormatServiceTest {
     private var assetService: AssetService = mock()
-    private val ruleService: RuleService = mock()
-    private val printScriptService = FormatServiceImpl(assetService, ruleService, RedisTemplate())
+    private val ruleManagerService: RuleManagerService = mock()
+    private val printScriptService = FormatServiceImpl(assetService, ruleManagerService, RedisTemplate())
     private val testJwt = "test"
 
     val jwt =
@@ -59,7 +59,7 @@ class FormatServiceTest {
 
     @Test
     fun test001FormatShouldWorkCorrectly() {
-        whenever(ruleService.getFormatRules(jwt)).thenReturn(
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
                 "{\n" +
                     "  \"DotFront\": \"1\",\n" +
@@ -72,7 +72,7 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
 
         val result = printScriptService.format(SnippetData(1), jwt).block()
@@ -85,9 +85,9 @@ class FormatServiceTest {
 
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -96,8 +96,8 @@ class FormatServiceTest {
 
     @Test
     fun test003ShouldThrowErrorWhenFormatRulesNotRetrieved() {
-        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.error(Exception("Error getting format rules")))
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.error(Exception("Error getting format rules")))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1), jwt).block()
@@ -106,7 +106,7 @@ class FormatServiceTest {
 
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
-        whenever(ruleService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("invalid code"))
 
         assertThrows<Exception> {
@@ -116,7 +116,7 @@ class FormatServiceTest {
 
     @Test
     fun test005ShouldCleanupTempFilesAfterSuccessfulFormatting() {
-        whenever(ruleService.getFormatRules(jwt)).thenReturn(
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
                 "{\n" +
                     "  \"DotFront\": \"1\",\n" +
@@ -129,7 +129,7 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 

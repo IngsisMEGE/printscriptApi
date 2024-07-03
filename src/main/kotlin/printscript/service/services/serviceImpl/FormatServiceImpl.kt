@@ -13,7 +13,7 @@ import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -21,16 +21,16 @@ import reactor.core.scheduler.Schedulers
 @Service
 class FormatServiceImpl(
     private val assetService: AssetService,
-    private val ruleService: RuleService,
+    private val ruleManagerService: RuleManagerService,
     private val redisTemplate: RedisTemplate<String, Any>,
 ) : FormatService {
     override fun format(
         snippetData: SnippetData,
         userData: Jwt,
     ): Mono<String> {
-        return ruleService.getLintingRules(userData).flatMap { lintingRules ->
+        return ruleManagerService.getLintingRules(userData).flatMap { lintingRules ->
             val lintingRulesFilePath = FileManagement.createLexerRuleFile(lintingRules)
-            ruleService.getFormatRules(userData).flatMap { formatRules ->
+            ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
                 val formatRulesFilePath = FileManagement.createTempFileWithContent(formatRules)
                 formatSnippet(snippetData.snippetId, formatRulesFilePath, lintingRulesFilePath)
                     .doOnTerminate {
@@ -129,11 +129,11 @@ class FormatServiceImpl(
                         .then(Mono.just(formattedSnippet))
                 }
                 .flatMap { formattedSnippet ->
-                    ruleService.callbackFormat(formattedSnippet, userJWT)
+                    ruleManagerService.callbackFormat(formattedSnippet, userJWT)
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
-                    ruleService.callbackFormat("error", userJWT).block()
+                    ruleManagerService.callbackFormat("error", userJWT).block()
                 }
                 .subscribe()
         }
