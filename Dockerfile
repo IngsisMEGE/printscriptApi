@@ -16,6 +16,8 @@ RUN --mount=type=secret,id=username,target=/run/secrets/username \
 
 WORKDIR /app
 
+COPY fakeEnv .env
+
 EXPOSE ${PORT}
 
 ENTRYPOINT ["java", "-jar", "/home/gradle/src/build/libs/service-0.0.1-SNAPSHOT.jar"]
