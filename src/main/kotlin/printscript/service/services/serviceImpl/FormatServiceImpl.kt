@@ -1,9 +1,14 @@
 package printscript.service.services.serviceImpl
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.example.PrintScript
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import printscript.service.dto.FormatSnippetWithRulesDTO
+import printscript.service.dto.FormatSnippetWithRulesRedisDTO
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
@@ -11,11 +16,13 @@ import printscript.service.services.interfaces.FormatService
 import printscript.service.services.interfaces.RuleService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 @Service
 class FormatServiceImpl(
     private val assetService: AssetService,
     private val ruleService: RuleService,
+    private val redisTemplate: RedisTemplate<String, Any>,
 ) : FormatService {
     override fun format(
         snippetData: SnippetData,
@@ -101,6 +108,34 @@ class FormatServiceImpl(
             FileManagement.deleteTempFile(filePath)
         } catch (ignored: Exception) {
             println("Error deleting temp file: $filePath")
+        }
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    fun processFormatQueue() {
+        val objectMapper = jacksonObjectMapper()
+        val requestData = redisTemplate.opsForList().leftPop("snippet_formatting_queue")
+
+        if (requestData != null) {
+            val formatSnippetWithRulesDataRedis: FormatSnippetWithRulesRedisDTO =
+                objectMapper.readValue(requestData.toString())
+            val formatSnippetRules = formatSnippetWithRulesDataRedis.formatSnippetWithRules
+            val userJWT = formatSnippetWithRulesDataRedis.userData
+            val snippetID = formatSnippetRules.snippetId
+
+            formatWithRules(formatSnippetRules, userJWT)
+                .flatMap { formattedSnippet ->
+                    assetService.saveSnippet(snippetID, formattedSnippet)
+                        .then(Mono.just(formattedSnippet))
+                }
+                .flatMap { formattedSnippet ->
+                    ruleService.callbackFormat(formattedSnippet, userJWT)
+                }
+                .publishOn(Schedulers.boundedElastic())
+                .doOnError {
+                    ruleService.callbackFormat("error", userJWT).block()
+                }
+                .subscribe()
         }
     }
 }
