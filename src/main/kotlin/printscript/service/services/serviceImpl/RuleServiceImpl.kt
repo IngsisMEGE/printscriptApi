@@ -72,4 +72,16 @@ class RuleServiceImpl(
             }
             .bodyToMono<List<RulesDTO>>()
     }
+
+    override fun callbackFormat(
+        snippetFormated: String,
+        userData: Jwt,
+    ): Mono<Void> {
+        return webClient.post()
+            .uri("$ruleAPIURL/rules")
+            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .bodyValue(snippetFormated)
+            .retrieve()
+            .bodyToMono()
+    }
 }

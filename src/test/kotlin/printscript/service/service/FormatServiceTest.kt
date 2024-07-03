@@ -5,19 +5,22 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.oauth2.jwt.Jwt
 import printscript.service.dto.FormatSnippetWithRulesDTO
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.SnippetManagerService
 import printscript.service.services.serviceImpl.FormatServiceImpl
 import reactor.core.publisher.Mono
 
 class FormatServiceTest {
     private var assetService: AssetService = mock()
     private val ruleService: RuleService = mock()
-    private val printScriptService = FormatServiceImpl(assetService, ruleService)
+    private val snippetManagerService: SnippetManagerService = mock()
+    private val printScriptService = FormatServiceImpl(assetService, ruleService, RedisTemplate(), snippetManagerService)
     private val testJwt = "test"
 
     val jwt =
