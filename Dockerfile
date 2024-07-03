@@ -9,8 +9,6 @@ COPY fakeEnv .env
 
 ARG NEW_RELIC_LICENSE_KEY
 
-ENV NEW_RELIC_LICENSE_KEY=$NEW_RELIC_LICENSE_KEY
-
 # Read secrets from the mounted secrets files and export them as environment variables
 RUN --mount=type=secret,id=username,target=/run/secrets/username \
     --mount=type=secret,id=token,target=/run/secrets/token \
