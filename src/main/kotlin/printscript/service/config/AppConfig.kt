@@ -14,6 +14,8 @@ class AppConfig {
 
     @Bean
     fun dotenv(): Dotenv {
-        return Dotenv.load()
-    }
+        return Dotenv.configure()
+            .directory("/home/gradle/src")
+            .filename(".env")
+            .load()    }
 }
