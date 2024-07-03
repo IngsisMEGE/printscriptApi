@@ -7,13 +7,11 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import printscript.service.dto.FormatSnippetWithRulesDTO
-import printscript.service.dto.FormatSnippetWithRulesRedisDTO
-import printscript.service.dto.RulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
 import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.SnippetManagerService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -23,6 +21,7 @@ class FormatServiceImpl(
     private val assetService: AssetService,
     private val ruleService: RuleService,
     private val redisTemplate: RedisTemplate<String, Any>,
+    private val snippetManagerService: SnippetManagerService,
 ) : FormatService {
     override fun format(
         snippetData: SnippetData,
@@ -128,12 +127,16 @@ class FormatServiceImpl(
                     assetService.saveSnippet(snippetID, formattedSnippet)
                         .then(Mono.just(formattedSnippet))
                 }
-                .flatMap { formattedSnippet ->
-                    ruleService.callbackFormat(formattedSnippet, userJWT)
+                .map {
+                    snippetManagerService.updateSnippetStatus(
+                        StatusDTO(SnippetStatus.COMPLIANT, snippetID, userJWT.claims["email"].toString()),
+                    )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
-                    ruleService.callbackFormat("error", userJWT).block()
+                    snippetManagerService.updateSnippetStatus(
+                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetID, userJWT.claims["email"].toString()),
+                    )
                 }
                 .subscribe()
         }

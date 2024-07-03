@@ -12,13 +12,15 @@ import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.SnippetManagerService
 import printscript.service.services.serviceImpl.FormatServiceImpl
 import reactor.core.publisher.Mono
 
 class FormatServiceTest {
     private var assetService: AssetService = mock()
     private val ruleService: RuleService = mock()
-    private val printScriptService = FormatServiceImpl(assetService, ruleService, RedisTemplate())
+    private val snippetManagerService: SnippetManagerService = mock()
+    private val printScriptService = FormatServiceImpl(assetService, ruleService, RedisTemplate(), snippetManagerService)
     private val testJwt = "test"
 
     val jwt =
