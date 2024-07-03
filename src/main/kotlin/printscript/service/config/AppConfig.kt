@@ -14,6 +14,6 @@ class AppConfig {
 
     @Bean
     fun dotenv(): Dotenv {
-        return Dotenv.configure().load()
+        return Dotenv.load()
     }
 }
