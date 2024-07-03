@@ -14,7 +14,10 @@ RUN --mount=type=secret,id=username,target=/run/secrets/username \
            TOKEN=$(cat /run/secrets/token) && \
            gradle build -PUSERNAME=$USERNAME -PTOKEN=$TOKEN'
 
+
+
 WORKDIR /app
+COPY fakeEnv .env
 
 EXPOSE ${PORT}
 
