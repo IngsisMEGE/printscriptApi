@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 import printscript.service.dto.*
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.interfaces.SnippetManagerService
 import printscript.service.utils.FileManagement
 import reactor.core.publisher.Mono
@@ -19,7 +19,7 @@ import reactor.core.scheduler.Schedulers
 @Service
 class FormatServiceImpl(
     private val assetService: AssetService,
-    private val ruleService: RuleService,
+    private val ruleManagerService: RuleManagerService,
     private val redisTemplate: RedisTemplate<String, Any>,
     private val snippetManagerService: SnippetManagerService,
 ) : FormatService {
@@ -27,9 +27,9 @@ class FormatServiceImpl(
         snippetData: SnippetData,
         userData: Jwt,
     ): Mono<String> {
-        return ruleService.getLintingRules(userData).flatMap { lintingRules ->
+        return ruleManagerService.getLintingRules(userData).flatMap { lintingRules ->
             val lintingRulesFilePath = FileManagement.createLexerRuleFile(lintingRules)
-            ruleService.getFormatRules(userData).flatMap { formatRules ->
+            ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
                 val formatRulesFilePath = FileManagement.createTempFileWithContent(formatRules)
                 formatSnippet(snippetData.snippetId, formatRulesFilePath, lintingRulesFilePath)
                     .doOnTerminate {

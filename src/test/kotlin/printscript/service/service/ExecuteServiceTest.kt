@@ -10,14 +10,14 @@ import printscript.service.dto.RulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.ExecuteService
-import printscript.service.services.interfaces.RuleService
+import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.serviceImpl.ExecuteServiceImpl
 import reactor.core.publisher.Mono
 
 class ExecuteServiceTest {
     private val assetService: AssetService = mock()
-    private val ruleService: RuleService = mock()
-    private val executeService: ExecuteService = ExecuteServiceImpl(assetService, ruleService)
+    private val ruleManagerService: RuleManagerService = mock()
+    private val executeService: ExecuteService = ExecuteServiceImpl(assetService, ruleManagerService)
 
     val lintRules =
         listOf(
@@ -58,7 +58,7 @@ class ExecuteServiceTest {
 
     @Test
     fun test001ExecuteSnippetSuccessfully() {
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         whenever(
             assetService.getSnippet(1),
@@ -71,7 +71,7 @@ class ExecuteServiceTest {
 
     @Test
     fun test002ExecuteSnippetWithWrongStructureShouldError() {
-        whenever(ruleService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         whenever(
             assetService.getSnippet(1),
