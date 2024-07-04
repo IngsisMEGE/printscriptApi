@@ -9,7 +9,7 @@ import printscript.service.services.interfaces.RuleService
 import printscript.service.services.serviceImpl.RuleServiceImpl
 
 class RuleServiceTest {
-    private val ruleService : RuleService = RuleServiceImpl()
+    private val ruleService: RuleService = RuleServiceImpl()
 
     @Test
     fun test001VerifyLexerRulesSuccessFully() {
@@ -26,7 +26,7 @@ class RuleServiceTest {
 
         val result = ruleService.verifyLexerRules(lintRules)
 
-        assertEquals(true , result)
+        assertEquals(true, result)
     }
 
 //    @Test
@@ -49,13 +49,14 @@ class RuleServiceTest {
 
     @Test
     fun test003VerifyFormatterRulesSuccessfully() {
-        val rules = listOf(
-            RulesDTO("DotFront", "1"),
-            RulesDTO("DotBack", "1"),
-            RulesDTO("EqualFront", "1"),
-            RulesDTO("EqualBack", "1"),
-            RulesDTO("amountOfLines", "1"),
-        )
+        val rules =
+            listOf(
+                RulesDTO("DotFront", "1"),
+                RulesDTO("DotBack", "1"),
+                RulesDTO("EqualFront", "1"),
+                RulesDTO("EqualBack", "1"),
+                RulesDTO("amountOfLines", "1"),
+            )
 
         val result = ruleService.verifyFormatterRules(rules)
 
@@ -64,13 +65,14 @@ class RuleServiceTest {
 
     @Test
     fun test004VerifyFormatterRulesShouldThrowErrorIfRuleDosentExistInPrintScript() {
-        val rules = listOf(
-            RulesDTO("DotFront", "-1"),
-            RulesDTO("IDONTEXIST", "-1"),
-            RulesDTO("EqualFront", "1"),
-            RulesDTO("EqualBack", "1"),
-            RulesDTO("amountOfLines", "1"),
-        )
+        val rules =
+            listOf(
+                RulesDTO("DotFront", "-1"),
+                RulesDTO("IDONTEXIST", "-1"),
+                RulesDTO("EqualFront", "1"),
+                RulesDTO("EqualBack", "1"),
+                RulesDTO("amountOfLines", "1"),
+            )
 
         assertThrows<Exception> {
             ruleService.verifyFormatterRules(rules)
@@ -78,7 +80,7 @@ class RuleServiceTest {
     }
 
     @Test
-    fun test005VerifySCARulesShouldSuccess(){
+    fun test005VerifySCARulesShouldSuccess() {
         val scaRules =
             listOf(
                 RulesDTO("CamelCaseFormat", "true"),
@@ -93,7 +95,7 @@ class RuleServiceTest {
     }
 
     @Test
-    fun test006VerifySCARulesShouldThrowExceptionIfRuleDontExist(){
+    fun test006VerifySCARulesShouldThrowExceptionIfRuleDontExist() {
         val scaRules =
             listOf(
                 RulesDTO("CamelCaseFormat", "true"),
@@ -106,5 +108,4 @@ class RuleServiceTest {
             ruleService.verifySCARules(scaRules)
         }
     }
-
 }
