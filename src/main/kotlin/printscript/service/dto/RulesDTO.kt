@@ -19,6 +19,11 @@ data class SCASnippetWithRulesDTO(
     val lintingRules: List<RulesDTO>,
 )
 
+data class SCASnippetWithRulesRedisDTO(
+    val scaSnippet : SCASnippetWithRulesDTO,
+    val userData: Jwt
+)
+
 data class FormatSnippetWithRulesRedisDTO(
     val formatSnippetWithRules: FormatSnippetWithRulesDTO,
     val userData: Jwt,
