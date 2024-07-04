@@ -13,6 +13,7 @@ class RuleServiceImpl() : RuleService {
         val printScript = PrintScript()
         printScript.updateRegexRules(rulesPath)
         FileManagement.deleteTempFile(rulesPath)
+        FileManagement.deleteTempFile("lexerRules.json")
         return true
     }
 
@@ -22,6 +23,7 @@ class RuleServiceImpl() : RuleService {
         val printScript = PrintScript()
         printScript.changeFormatterConfig(rulePath)
         FileManagement.deleteTempFile(rulePath)
+        FileManagement.deleteTempFile("formatterConfig.json")
         return true
     }
 
@@ -30,6 +32,7 @@ class RuleServiceImpl() : RuleService {
         val printScript = PrintScript()
         printScript.changeSCAConfig(rulePath)
         FileManagement.deleteTempFile(rulePath)
+        FileManagement.deleteTempFile("scaConfig.json")
         return true
     }
 
