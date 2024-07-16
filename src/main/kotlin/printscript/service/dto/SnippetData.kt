@@ -14,3 +14,13 @@ data class StatusDTO(
     val id: Long,
     val ownerEmail: String,
 )
+
+data class SnippetDataInputs(
+    val snippetId: Long,
+    val inputs: List<String>,
+)
+
+data class SnippetDataLiveResponse(
+    val output: String,
+    val doesItNeedInput: Boolean,
+)

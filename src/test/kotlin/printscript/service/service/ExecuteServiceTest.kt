@@ -6,8 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
-import printscript.service.dto.RulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.ExecuteService
 import printscript.service.services.interfaces.RuleManagerService
@@ -64,7 +63,7 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a : number = 1;  let b : number = 2; let c : number= a + b; println(c);"))
 
-        val result = executeService.executeSnippet(SnippetData(1L), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataInputs(1L, listOf()), jwt).block()
 
         assertEquals("3\n", result)
     }
@@ -77,8 +76,26 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a | NOEXISTO = 1;  let b : number = 2; let c : number= a + b; println(c"))
 
-        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetData(1L), jwt).block() }
+        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataInputs(1L, listOf()), jwt).block() }
 
         assertEquals("exceptions.SyntacticError: Unexpected structure at Line 1", result.message)
+    }
+
+    @Test
+    fun test003ExecuteTestSnippetWithInputsAndReadInput() {
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+
+        whenever(
+            assetService.getSnippet(1),
+        ).thenReturn(Mono.just("let x :boolean;\n" +
+                "x = true;\n" +
+                "x = false;\n" +
+                "println(x);\n" +
+                "let str : string = 'Hello';\n" +
+                "println(str + x);"))
+
+        val result = executeService.executeSnippet(SnippetDataInputs(1L, listOf("1", "2")), jwt).block()
+
+        assertEquals("1\n", result)
     }
 }

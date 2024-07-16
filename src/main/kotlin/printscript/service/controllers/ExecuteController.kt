@@ -7,22 +7,34 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import printscript.service.services.interfaces.ExecuteService
 import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/execute")
 class ExecuteController(private val executeService: ExecuteService) {
-    @PostMapping("/")
+    @PostMapping("/test")
     fun executeSnippet(
-        @RequestBody snippetData: SnippetData,
+        @RequestBody snippetData: SnippetDataInputs,
         @AuthenticationPrincipal userData: Jwt,
-    ): ResponseEntity<Mono<String>> {
-        return try {
-            ResponseEntity.ok(executeService.executeSnippet(snippetData, userData))
-        } catch (e: Exception) {
-            ResponseEntity.badRequest().body(e.message?.let { Mono.just(it) })
-        }
+    ): Mono<ResponseEntity<String>> {
+        return executeService.executeSnippet(snippetData, userData)
+            .map { ResponseEntity.ok(it) }
+            .onErrorResume { e -> Mono.just(ResponseEntity.badRequest().body(e.message)) }
+    }
+
+    @PostMapping("/live")
+    fun executeLiveController(
+        @RequestBody snippetDataLive: SnippetDataInputs,
+        @AuthenticationPrincipal userData: Jwt,
+    ): Mono<ResponseEntity<SnippetDataLiveResponse>> {
+        return executeService.liveExecuteSnippet(snippetDataLive, userData)
+            .map { ResponseEntity.ok(it) }
+            .onErrorResume { e ->
+                Mono.just(
+                    ResponseEntity.badRequest().body(SnippetDataLiveResponse(e.message ?: "", true)),
+                )
+            }
     }
 }
