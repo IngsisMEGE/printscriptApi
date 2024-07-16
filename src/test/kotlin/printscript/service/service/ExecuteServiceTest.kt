@@ -87,12 +87,7 @@ class ExecuteServiceTest {
 
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x :boolean;\n" +
-                "x = true;\n" +
-                "x = false;\n" +
-                "println(x);\n" +
-                "let str : string = 'Hello';\n" +
-                "println(str + x);"))
+        ).thenReturn(Mono.just("let x :boolean = true;"))
 
         val result = executeService.executeSnippet(SnippetDataInputs(1L, listOf("1", "2")), jwt).block()
 

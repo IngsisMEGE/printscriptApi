@@ -73,6 +73,7 @@ class ExecuteServiceImpl(private val assetService: AssetService, private val rul
         val result = printScript.start(snippetPath)
         FileManagement.deleteTempFile(snippetPath)
         FileManagement.deleteTempFile("linterConfig.json")
+        FileManagement.deleteTempFile("lexerRules.json")
         FileManagement.deleteTempFile(lintRulePath)
         return result
     }
