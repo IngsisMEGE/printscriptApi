@@ -87,7 +87,7 @@ class FormatServiceImpl(
         lintingRulesFilePath: String,
     ): Mono<String> {
         val snippetFilePath = FileManagement.createTempFileWithContent(code)
-        val printscript = PrintScript()
+        val printscript = PrintScript(::loadInput)
 
         return try {
             printscript.changeFormatterConfig(formatRulesFilePath)
@@ -140,5 +140,9 @@ class FormatServiceImpl(
                 }
                 .subscribe()
         }
+    }
+
+    private fun loadInput(message: String): String {
+        return "input"
     }
 }

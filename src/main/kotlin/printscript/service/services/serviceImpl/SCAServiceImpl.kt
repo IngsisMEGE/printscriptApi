@@ -79,7 +79,7 @@ class SCAServiceImpl(
         scaRulePath: String,
         lintingRulesPath: String,
     ): String {
-        val printScript = PrintScript()
+        val printScript = PrintScript(::message)
         printScript.changeSCAConfig(scaRulePath)
         printScript.updateRegexRules(lintingRulesPath)
         val result = printScript.analyze(snippetPath)
@@ -89,6 +89,10 @@ class SCAServiceImpl(
         FileManagement.deleteTempFile("lexerRules.json")
         FileManagement.deleteTempFile(lintingRulesPath)
         return result
+    }
+
+    private fun message(m: String): String {
+        return "hello"
     }
 
     @Scheduled(fixedDelay = 1000)

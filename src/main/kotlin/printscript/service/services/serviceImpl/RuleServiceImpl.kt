@@ -10,7 +10,7 @@ import printscript.service.utils.FileManagement
 class RuleServiceImpl() : RuleService {
     override fun verifyLexerRules(lintingRule: List<RulesDTO>): Boolean {
         val rulesPath = FileManagement.createLexerRuleFile(lintingRule)
-        val printScript = PrintScript()
+        val printScript = PrintScript(::loadInput)
         printScript.updateRegexRules(rulesPath)
         FileManagement.deleteTempFile(rulesPath)
         FileManagement.deleteTempFile("lexerRules.json")
@@ -20,7 +20,7 @@ class RuleServiceImpl() : RuleService {
     override fun verifyFormatterRules(formatterRule: List<RulesDTO>): Boolean {
         val rules = rulesToJSONString(formatterRule)
         val rulePath = FileManagement.createTempFileWithContent(rules)
-        val printScript = PrintScript()
+        val printScript = PrintScript(::loadInput)
         printScript.changeFormatterConfig(rulePath)
         FileManagement.deleteTempFile(rulePath)
         FileManagement.deleteTempFile("formatterConfig.json")
@@ -29,7 +29,7 @@ class RuleServiceImpl() : RuleService {
 
     override fun verifySCARules(scaRule: List<RulesDTO>): Boolean {
         val rulePath = FileManagement.creteSCARuleFile(scaRule)
-        val printScript = PrintScript()
+        val printScript = PrintScript(::loadInput)
         printScript.changeSCAConfig(rulePath)
         FileManagement.deleteTempFile(rulePath)
         FileManagement.deleteTempFile("scaConfig.json")
@@ -42,5 +42,9 @@ class RuleServiceImpl() : RuleService {
             rulesMap[rule.name] = rule.value
         }
         return rulesMap.toString()
+    }
+
+    private fun loadInput(message: String): String {
+        return "input"
     }
 }

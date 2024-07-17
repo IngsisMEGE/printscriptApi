@@ -31,7 +31,7 @@ class FileManagement {
 
             val rulesMap =
                 rules.associate { rule ->
-                    rule.name to
+                    rule.value to
                         mapOf(
                             "pattern" to rule.value,
                             "type" to rule.name,
