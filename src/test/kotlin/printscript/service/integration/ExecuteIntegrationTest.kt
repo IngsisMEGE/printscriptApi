@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("integration")
@@ -35,12 +35,12 @@ class ExecuteIntegrationTest {
             .build()
 
     @Test
-    fun test001ExecuteSnippetSuccessfully() {
+    fun test001ExecuteTestSuccess() {
         val snippetData = SnippetData(1L)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
-            post("/execute/")
+            post("/execute/test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .header("Authorization", "Bearer ${jwt.tokenValue}"),
@@ -50,17 +50,17 @@ class ExecuteIntegrationTest {
     }
 
     @Test
-    fun test002ExecuteSnippetWrong() {
-        val snippetData = SnippetData(1L)
+    fun test002ExecuteLiveSuccess() {
+        val snippetData = SnippetDataInputs(1L, listOf("1"))
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
-            post("/execute/")
+            post("/execute/live")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .header("Authorization", "Bearer ${jwt.tokenValue}"),
         )
-            .andExpect(status().isBadRequest)
+            .andExpect(status().isOk)
             .andExpect(content().json("null"))
     }
 }

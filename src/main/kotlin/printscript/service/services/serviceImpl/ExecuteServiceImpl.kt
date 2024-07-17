@@ -30,10 +30,14 @@ class ExecuteServiceImpl(private val assetService: AssetService, private val rul
         userData: Jwt,
     ): Mono<SnippetDataLiveResponse> {
         val inputs: MutableList<String> = snippet.inputs.toMutableList()
-        val inputMessage = ""
+        var inputMessage = ""
         return getSnippet(snippet.snippetId).flatMap { snippetFile ->
             getLintingRules(userData).flatMap { rulesFile ->
-                val printscript = PrintScript { loadInputDynamic(it, inputs) }
+                val printscript =
+                    PrintScript {
+                        inputMessage = it
+                        loadInputDynamic(it, inputs)
+                    }
                 try {
                     val result = execute(snippetFile, rulesFile, printscript)
                     Mono.just(SnippetDataLiveResponse(result, false))
@@ -41,7 +45,7 @@ class ExecuteServiceImpl(private val assetService: AssetService, private val rul
                     val outputs = printscript.getOutputs()
                     val result = StringBuilder()
                     for (output in outputs) {
-                        result.append(output).append("\n")
+                        result.append(output)
                     }
                     result.append(inputMessage)
                     Mono.just(SnippetDataLiveResponse(result.toString(), true))

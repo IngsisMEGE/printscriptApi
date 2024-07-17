@@ -31,7 +31,7 @@ class FormatServiceTest {
 
     val lintRules =
         listOf(
-            RulesDTO("STRING_VALUE", "\"(?:\\\\.|[^\"])*\""),
+            RulesDTO("STRING_VALUE", "\\\"(?:\\\\.|[^\"])*\\\""),
             RulesDTO("STRING_VALUE", "'(?:\\\\.|[^'])*'"),
             RulesDTO("DECLARATION_VARIABLE", "\\blet\\b"),
             RulesDTO("DECLARATION_IMMUTABLE", "\\bconst\\b"),
@@ -56,7 +56,7 @@ class FormatServiceTest {
             RulesDTO("BOOLEAN_VALUE", "\\btrue\\b"),
             RulesDTO("BOOLEAN_VALUE", "\\bfalse\\b"),
             RulesDTO("NUMBER_VALUE", "\\b\\d+\\.?\\d*\\b"),
-            RulesDTO("VARIABLE_NAME", "(?<!\")\\b[a-zA-Z_][a-zA-Z0-9_]*\\b(?!\")"),
+            RulesDTO("VARIABLE_NAME", """(?<!")\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!")"""),
         )
 
     @Test
