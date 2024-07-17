@@ -91,8 +91,8 @@ class SCAServiceImpl(
         return result
     }
 
-    private fun message(message: String): String {
-        return "Hello World"
+    private fun message(m: String): String {
+        return "hello"
     }
 
     @Scheduled(fixedDelay = 1000)
