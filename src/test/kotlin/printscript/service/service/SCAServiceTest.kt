@@ -5,19 +5,23 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.oauth2.jwt.Jwt
 import printscript.service.dto.RulesDTO
 import printscript.service.dto.SCASnippetWithRulesDTO
 import printscript.service.dto.SnippetData
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleManagerService
+import printscript.service.services.interfaces.SnippetManagerService
 import printscript.service.services.serviceImpl.SCAServiceImpl
 import reactor.core.publisher.Mono
 
 class SCAServiceTest {
     private var assetService: AssetService = mock()
     private val ruleManagerService: RuleManagerService = mock()
-    private val scaService = SCAServiceImpl(assetService, ruleManagerService)
+    private val redisTemplate: RedisTemplate<String, Any> = mock()
+    private val snippetManagerService: SnippetManagerService = mock()
+    private val scaService = SCAServiceImpl(assetService, ruleManagerService, redisTemplate, snippetManagerService)
 
     val testJwt = "test"
     val jwt =
