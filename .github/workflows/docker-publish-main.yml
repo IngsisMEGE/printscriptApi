@@ -59,6 +59,8 @@ jobs:
           tags: |
             ghcr.io/ingsismege/printscriptapi:latest
             ghcr.io/ingsismege/printscriptapi:${{ env.VERSION }}
+          build-args:
+            NEW_RELIC_LICENSE_KEY=${{ secrets.NEW_RELIC_LICENSE_KEY }}
           secrets: |
             username=${{ github.actor  }}
             token=${{ secrets.GITHUB_TOKEN }}

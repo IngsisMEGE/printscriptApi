@@ -9,10 +9,7 @@ services:
       - .env
 
   printscriptapi:
-    image: my-app
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/ingsismege/printscriptapi:latest.snapshot
     env_file:
       - .env
     ports:
@@ -23,6 +20,27 @@ services:
       - username
       - token
 
+  api:
+    container_name: "asset_service"
+    image: ghcr.io/austral-ingsis/snippet-asset-service:latest
+    ports:
+      - "8081:8081"
+    environment:
+      AZURE_HOST: "http://azurite"
+      NEW_RELIC_AGENT_ENABLED: false
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: "azurite"
+    hostname: azurite
+    restart: always
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - blob:/workspace
+
 secrets:
   username:
     file: ./secrets/username
@@ -30,3 +48,4 @@ secrets:
     file: ./secrets/token
 volumes:
   postgres_data:
+  blob:
