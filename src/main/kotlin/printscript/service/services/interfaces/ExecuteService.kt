@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono
 
 interface ExecuteService {
     fun executeSnippet(
-        snippet: SnippetDataInputs,
+        snippet: SnippetDataTest,
         userData: Jwt,
     ): Mono<String>
 

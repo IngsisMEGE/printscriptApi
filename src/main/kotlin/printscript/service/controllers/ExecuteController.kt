@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono
 class ExecuteController(private val executeService: ExecuteService) {
     @PostMapping("/test")
     fun executeSnippet(
-        @RequestBody snippetData: SnippetDataInputs,
+        @RequestBody snippetData: SnippetDataTest,
         @AuthenticationPrincipal userData: Jwt,
     ): Mono<ResponseEntity<String>> {
         return executeService.executeSnippet(snippetData, userData)
