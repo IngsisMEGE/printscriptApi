@@ -2,13 +2,17 @@ package printscript.service.services.serviceImpl
 
 import io.github.cdimascio.dotenv.Dotenv
 import org.apache.coyote.BadRequestException
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import printscript.service.dto.RulesDTO
 import printscript.service.exceptions.NotFoundException
+import printscript.service.log.CorrIdFilter.Companion.CORRELATION_ID_KEY
 import printscript.service.services.interfaces.RuleManagerService
 import reactor.core.publisher.Mono
 
@@ -20,9 +24,15 @@ class RuleManagerServiceImpl(
     private val ruleAPIURL = dotenv["RULE_URL"]
 
     override fun getFormatRules(userData: Jwt): Mono<String> {
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("Authorization", "Bearer ${userData.tokenValue}")
+            }
+        headers.addAll(getHeader())
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/format")
-            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
@@ -38,9 +48,15 @@ class RuleManagerServiceImpl(
     }
 
     override fun getLintingRules(userData: Jwt): Mono<List<RulesDTO>> {
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("Authorization", "Bearer ${userData.tokenValue}")
+            }
+        headers.addAll(getHeader())
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/lint")
-            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
@@ -56,9 +72,15 @@ class RuleManagerServiceImpl(
     }
 
     override fun getSCARules(userData: Jwt): Mono<List<RulesDTO>> {
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("Authorization", "Bearer ${userData.tokenValue}")
+            }
+        headers.addAll(getHeader())
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/sca")
-            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
@@ -83,5 +105,15 @@ class RuleManagerServiceImpl(
             .bodyValue(snippetFormated)
             .retrieve()
             .bodyToMono()
+    }
+
+    private fun getHeader(): HttpHeaders {
+        val correlationId = MDC.get(CORRELATION_ID_KEY)
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("X-Correlation-Id", correlationId)
+            }
+        return headers
     }
 }
