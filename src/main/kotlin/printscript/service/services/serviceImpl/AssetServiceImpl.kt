@@ -4,13 +4,17 @@ import io.github.cdimascio.dotenv.Dotenv
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.mono
 import org.apache.coyote.BadRequestException
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToFlow
 import org.springframework.web.reactive.function.client.bodyToMono
 import printscript.service.exceptions.NotFoundException
+import printscript.service.log.CorrIdFilter.Companion.CORRELATION_ID_KEY
 import printscript.service.services.interfaces.AssetService
 import reactor.core.publisher.Mono
 import java.awt.image.DataBuffer
@@ -27,6 +31,7 @@ class AssetServiceImpl(
             val response: Flow<DataBuffer> =
                 webClient.get()
                     .uri("$bucketURL/$snippetId")
+                    .headers { headers -> headers.addAll(getHeader()) }
                     .retrieve()
                     .onStatus({ status -> status.is4xxClientError }) { response ->
                         onStatus(response)
@@ -49,6 +54,7 @@ class AssetServiceImpl(
         return webClient.post()
             .uri("$bucketURL/$snippetId")
             .bodyValue(snippet)
+            .headers { headers -> headers.addAll(getHeader()) }
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
                 onStatus(response)
@@ -64,5 +70,15 @@ class AssetServiceImpl(
                 else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
             }
         }
+    }
+
+    private fun getHeader(): HttpHeaders {
+        val correlationId = MDC.get(CORRELATION_ID_KEY)
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("X-Correlation-Id", correlationId)
+            }
+        return headers
     }
 }
