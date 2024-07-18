@@ -97,7 +97,7 @@ class RuleManagerServiceImpl(
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue(snippetFormated)
             .retrieve()
-           .bodyToMono(Void::class.java)
+            .bodyToMono(Void::class.java)
             .doOnSuccess {
                 logger.info("Successfully posted formatted snippet for user")
             }
@@ -107,10 +107,11 @@ class RuleManagerServiceImpl(
     }
 
     private fun createHeaders(userData: Jwt): HttpHeaders {
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-            set("Authorization", "Bearer ${userData.tokenValue}")
-        }
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                set("Authorization", "Bearer ${userData.tokenValue}")
+            }
         headers.addAll(getHeader())
         return headers
     }
