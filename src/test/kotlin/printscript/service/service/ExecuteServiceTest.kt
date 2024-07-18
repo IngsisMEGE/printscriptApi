@@ -63,7 +63,7 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a : number = 1;  let b : number = 2; let c : number= a + b; println(c);"))
 
-        val result = executeService.executeSnippet(SnippetDataInputs(1L, listOf()), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf()), jwt).block()
 
         assertEquals("3\n", result)
     }
@@ -76,7 +76,7 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a | NOEXISTO = 1;  let b : number = 2; let c : number= a + b; println(c"))
 
-        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataInputs(1L, listOf()), jwt).block() }
+        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf()), jwt).block() }
 
         assertEquals("exceptions.SyntacticError: Unexpected structure at Line 1", result.message)
     }
@@ -89,7 +89,7 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = executeService.executeSnippet(SnippetDataInputs(1L, listOf("1", "2")), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf("1", "2"), mapOf()), jwt).block()
 
         assertEquals(
             "Enter a Number: \n" +
@@ -106,7 +106,7 @@ class ExecuteServiceTest {
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataInputs(1L, listOf("a")), jwt).block() }
+        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataTest(1L, listOf("a"), mapOf()), jwt).block() }
 
         assertEquals("El valor a no es un número válido.", result.message)
     }
@@ -168,5 +168,18 @@ class ExecuteServiceTest {
         val result = assertThrows<Exception> { executeService.liveExecuteSnippet(SnippetDataInputs(1L, listOf("a")), jwt).block() }
 
         assertEquals("El valor a no es un número válido.", result.message)
+    }
+
+    @Test
+    fun test008ExecuteSnippetTestWithEnvs() {
+        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
+
+        whenever(
+            assetService.getSnippet(1),
+        ).thenReturn(Mono.just("let a : string = readEnv(\"env\"); println(a);"))
+
+        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf("env" to "test")), jwt).block()
+
+        assertEquals("test\n", result)
     }
 }

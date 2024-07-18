@@ -14,13 +14,13 @@ import reactor.core.publisher.Mono
 @Service
 class ExecuteServiceImpl(private val assetService: AssetService, private val ruleManagerService: RuleManagerService) : ExecuteService {
     override fun executeSnippet(
-        snippet: SnippetDataInputs,
+        snippet: SnippetDataTest,
         userData: Jwt,
     ): Mono<String> {
         val inputs: MutableList<String> = snippet.inputs.toMutableList()
         return getSnippet(snippet.snippetId).flatMap { snippetFile ->
             getLintingRules(userData).flatMap { rulesFile ->
-                Mono.just(execute(snippetFile, rulesFile, PrintScript { loadInputStatic(inputs) }))
+                Mono.just(executeWithEnv(snippetFile, rulesFile, PrintScript { loadInputStatic(inputs) }, snippet.envs))
             }
         }
     }
@@ -75,6 +75,21 @@ class ExecuteServiceImpl(private val assetService: AssetService, private val rul
     ): String {
         printScript.updateRegexRules(lintRulePath)
         val result = printScript.start(snippetPath)
+        FileManagement.deleteTempFile(snippetPath)
+        FileManagement.deleteTempFile("linterConfig.json")
+        FileManagement.deleteTempFile("lexerRules.json")
+        FileManagement.deleteTempFile(lintRulePath)
+        return result
+    }
+
+    private fun executeWithEnv(
+        snippetPath: String,
+        lintRulePath: String,
+        printScript: PrintScript,
+        envs: Map<String, String>,
+    ): String {
+        printScript.updateRegexRules(lintRulePath)
+        val result = printScript.start(snippetPath, envs)
         FileManagement.deleteTempFile(snippetPath)
         FileManagement.deleteTempFile("linterConfig.json")
         FileManagement.deleteTempFile("lexerRules.json")

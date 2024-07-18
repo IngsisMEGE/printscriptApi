@@ -24,3 +24,9 @@ data class SnippetDataLiveResponse(
     val output: String,
     val doesItNeedInput: Boolean,
 )
+
+data class SnippetDataTest(
+    val snippetId: Long,
+    val inputs: List<String>,
+    val envs: Map<String, String>,
+)
