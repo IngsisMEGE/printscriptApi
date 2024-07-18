@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.example.PrintScript
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 @Service
+@EnableScheduling
 class SCAServiceImpl(
     private val assetService: AssetService,
     private val ruleManagerService: RuleManagerService,

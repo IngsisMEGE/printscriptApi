@@ -1,0 +1,25 @@
+FROM gradle:8.7.0-jdk17 AS build
+
+WORKDIR /home/gradle/src
+
+COPY build.gradle settings.gradle gradle/ ./
+COPY src ./src
+COPY .editorconfig ./
+COPY fakeEnv .env
+
+# Accept secrets as build arguments
+ARG USERNAME
+ARG TOKEN
+ARG NEW_RELIC_LICENSE_KEY
+
+# Use the build arguments in the build process
+RUN gradle build -PUSERNAME=${USERNAME} -PTOKEN=${TOKEN}
+
+WORKDIR /app
+COPY fakeEnv .env
+
+EXPOSE ${PORT}
+
+COPY newrelic/newrelic.jar /app/newrelic.jar
+
+ENTRYPOINT ["java", "-jar", "-javaagent:/app/newrelic.jar", "-Dnewrelic.config.license_key=${NEW_RELIC_LICENSE_KEY}", "/home/gradle/src/build/libs/service-0.0.1-SNAPSHOT.jar"]
