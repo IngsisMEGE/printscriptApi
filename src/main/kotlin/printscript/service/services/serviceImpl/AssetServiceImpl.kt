@@ -4,6 +4,8 @@ import io.github.cdimascio.dotenv.Dotenv
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.mono
 import org.apache.coyote.BadRequestException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -24,9 +26,11 @@ class AssetServiceImpl(
     @Autowired private val webClient: WebClient,
     @Autowired private val dotenv: Dotenv,
 ) : AssetService {
+    private val logger: Logger = LoggerFactory.getLogger(AssetServiceImpl::class.java)
     private val bucketURL = "${dotenv["BUCKET_URL"]}/v1/asset/snippet"
 
     override fun getSnippet(snippetId: Long): Mono<String> {
+        logger.debug("Entering getSnippet with snippetId: $snippetId")
         return mono {
             val response: Flow<DataBuffer> =
                 webClient.get()
@@ -43,7 +47,13 @@ class AssetServiceImpl(
                 val eventString = dataBuffer.toString()
                 stringBuilder.append(eventString)
             }
-            stringBuilder.toString()
+            val snippet = stringBuilder.toString()
+            logger.info("Successfully retrieved snippet with id: $snippetId")
+            snippet
+        }.doOnError { error ->
+            logger.error("Error retrieving snippet with id: $snippetId", error)
+        }.doFinally {
+            logger.debug("Exiting getSnippet with snippetId: $snippetId")
         }
     }
 
@@ -51,6 +61,7 @@ class AssetServiceImpl(
         snippetId: Long,
         snippet: String,
     ): Mono<String> {
+        logger.debug("Entering saveSnippet with snippetId: $snippetId")
         return webClient.post()
             .uri("$bucketURL/$snippetId")
             .bodyValue(snippet)
@@ -60,25 +71,39 @@ class AssetServiceImpl(
                 onStatus(response)
             }
             .bodyToMono<String>()
+            .doOnSuccess {
+                logger.info("Successfully saved snippet with id: $snippetId")
+            }.doOnError { error ->
+                logger.error("Error saving snippet with id: $snippetId", error)
+            }.doFinally {
+                logger.debug("Exiting saveSnippet with snippetId: $snippetId")
+            }
     }
 
     private fun onStatus(response: ClientResponse): Mono<out Throwable> {
         return response.bodyToMono<String>().flatMap { errorBody ->
             when (response.statusCode().value()) {
-                400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
-                404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
-                else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
+                400 -> {
+                    logger.error("Bad Request: $errorBody")
+                    Mono.error(BadRequestException("Bad Request: $errorBody"))
+                }
+                404 -> {
+                    logger.error("Not Found: $errorBody")
+                    Mono.error(NotFoundException("Not Found: $errorBody"))
+                }
+                else -> {
+                    logger.error("Error: $errorBody")
+                    Mono.error(Exception("Error: $errorBody"))
+                }
             }
         }
     }
 
     private fun getHeader(): HttpHeaders {
         val correlationId = MDC.get(CORRELATION_ID_KEY)
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                set("X-Correlation-Id", correlationId)
-            }
-        return headers
+        return HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_JSON
+            set("X-Correlation-Id", correlationId)
+        }
     }
 }

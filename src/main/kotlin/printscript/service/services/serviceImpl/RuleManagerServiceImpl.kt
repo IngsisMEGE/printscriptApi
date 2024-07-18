@@ -2,12 +2,15 @@ package printscript.service.services.serviceImpl
 
 import io.github.cdimascio.dotenv.Dotenv
 import org.apache.coyote.BadRequestException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import printscript.service.dto.RulesDTO
@@ -21,99 +24,121 @@ class RuleManagerServiceImpl(
     @Autowired private val webClient: WebClient,
     @Autowired private val dotenv: Dotenv,
 ) : RuleManagerService {
+    private val logger: Logger = LoggerFactory.getLogger(RuleManagerServiceImpl::class.java)
     private val ruleAPIURL = dotenv["RULE_URL"]
 
     override fun getFormatRules(userData: Jwt): Mono<String> {
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                set("Authorization", "Bearer ${userData.tokenValue}")
-            }
-        headers.addAll(getHeader())
+        logger.debug("Entering getFormatRules for user")
+        val headers = createHeaders(userData)
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/format")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
-                response.bodyToMono<String>().flatMap { errorBody ->
-                    when (response.statusCode().value()) {
-                        400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
-                        404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
-                        else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
-                    }
-                }
+                handleErrorResponse(response)
             }
             .bodyToMono<String>()
+            .doOnSuccess {
+                logger.info("Successfully retrieved format rules for user")
+            }
+            .doOnError { error ->
+                logger.error("Error retrieving format rules for user", error)
+            }
     }
 
     override fun getLintingRules(userData: Jwt): Mono<List<RulesDTO>> {
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                set("Authorization", "Bearer ${userData.tokenValue}")
-            }
-        headers.addAll(getHeader())
+        logger.debug("Entering getLintingRules for user")
+        val headers = createHeaders(userData)
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/lint")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
-                response.bodyToMono<String>().flatMap { errorBody ->
-                    when (response.statusCode().value()) {
-                        400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
-                        404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
-                        else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
-                    }
-                }
+                handleErrorResponse(response)
             }
             .bodyToMono<List<RulesDTO>>()
+            .doOnSuccess {
+                logger.info("Successfully retrieved linting rules for user")
+            }
+            .doOnError { error ->
+                logger.error("Error retrieving linting rules for user", error)
+            }
     }
 
     override fun getSCARules(userData: Jwt): Mono<List<RulesDTO>> {
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                set("Authorization", "Bearer ${userData.tokenValue}")
-            }
-        headers.addAll(getHeader())
+        logger.debug("Entering getSCARules for user")
+        val headers = createHeaders(userData)
         return webClient.post()
             .uri("$ruleAPIURL/rules/get/user/sca")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
-                response.bodyToMono<String>().flatMap { errorBody ->
-                    when (response.statusCode().value()) {
-                        400 -> Mono.error(BadRequestException("Bad Request Getting Snippet: $errorBody"))
-                        404 -> Mono.error(NotFoundException("Not Found Getting Snippet: $errorBody"))
-                        else -> Mono.error(Exception("Error Getting Snippet: $errorBody"))
-                    }
-                }
+                handleErrorResponse(response)
             }
             .bodyToMono<List<RulesDTO>>()
+            .doOnSuccess {
+                logger.info("Successfully retrieved SCA rules for user")
+            }
+            .doOnError { error ->
+                logger.error("Error retrieving SCA rules for user", error)
+            }
     }
 
     override fun callbackFormat(
         snippetFormated: String,
         userData: Jwt,
     ): Mono<Void> {
+        val headers = createHeaders(userData)
         return webClient.post()
             .uri("$ruleAPIURL/rules")
-            .header("Authorization", "Bearer ${userData.tokenValue}")
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue(snippetFormated)
             .retrieve()
-            .bodyToMono()
+           .bodyToMono(Void::class.java)
+            .doOnSuccess {
+                logger.info("Successfully posted formatted snippet for user")
+            }
+            .doOnError { error ->
+                logger.error("Error posting formatted snippet for user", error)
+            }
+    }
+
+    private fun createHeaders(userData: Jwt): HttpHeaders {
+        val headers = HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_JSON
+            set("Authorization", "Bearer ${userData.tokenValue}")
+        }
+        headers.addAll(getHeader())
+        return headers
+    }
+
+    private fun handleErrorResponse(response: ClientResponse): Mono<out Throwable> {
+        return response.bodyToMono<String>().flatMap { errorBody ->
+            when (response.statusCode().value()) {
+                400 -> {
+                    logger.error("Bad Request: $errorBody")
+                    Mono.error(BadRequestException("Bad Request: $errorBody"))
+                }
+                404 -> {
+                    logger.error("Not Found: $errorBody")
+                    Mono.error(NotFoundException("Not Found: $errorBody"))
+                }
+                else -> {
+                    logger.error("Error: $errorBody")
+                    Mono.error(Exception("Error: $errorBody"))
+                }
+            }
+        }
     }
 
     private fun getHeader(): HttpHeaders {
         val correlationId = MDC.get(CORRELATION_ID_KEY)
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                set("X-Correlation-Id", correlationId)
-            }
-        return headers
+        return HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_JSON
+            set("X-Correlation-Id", correlationId)
+        }
     }
 }
