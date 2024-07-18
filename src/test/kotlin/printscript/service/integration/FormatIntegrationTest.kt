@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("integration")
@@ -36,7 +36,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test001FormatSnippetSuccessfully() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -51,7 +51,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test002FormatSnippetWithRulesSuccessfully() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -66,7 +66,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test003FormatSnippetAndSaveSuccessfully() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -81,7 +81,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test004FormatSnippetWithRulesAndSaveSuccessfully() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -96,7 +96,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test006FormatSnippetAndErrorDueToLinting() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -111,7 +111,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test007FormatSnippetWithRulesAndErrorDueToLinting() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -126,7 +126,7 @@ class FormatIntegrationTest {
 
     @Test
     fun test008FormatSnippetAndSaveAndErrorDueToLinting() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -141,11 +141,26 @@ class FormatIntegrationTest {
 
     @Test
     fun test009FormatSnippetWithRulesAndSaveAndErrorDueToLinting() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
             post("/format/withRules/save")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .header("Authorization", "Bearer ${jwt.tokenValue}"),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().json("null"))
+    }
+
+    @Test
+    fun test010FormatFileWithNotSupportedLanguageShouldThrowError() {
+        val snippetData = SnippetData(1L, Language.Java)
+        val jsonContent = objectMapper.writeValueAsString(snippetData)
+
+        mockMvc.perform(
+            post("/format/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .header("Authorization", "Bearer ${jwt.tokenValue}"),

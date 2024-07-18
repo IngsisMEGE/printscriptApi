@@ -13,18 +13,6 @@ import printscript.service.services.interfaces.RuleService
 @RestController
 @RequestMapping("/verify")
 class VerifyRuleController(private val ruleService: RuleService) {
-    @PostMapping("/rule/lexer")
-    fun verifyLexerRules(
-        @AuthenticationPrincipal userData: Jwt,
-        @RequestBody lintRule: List<RulesDTO>,
-    ): ResponseEntity<Any> {
-        return try {
-            ResponseEntity.ok(ruleService.verifyLexerRules(lintRule))
-        } catch (e: Exception) {
-            ResponseEntity.badRequest().body(e.message)
-        }
-    }
-
     @PostMapping("/rule/formatter")
     fun verifyFormatterRules(
         @AuthenticationPrincipal userData: Jwt,

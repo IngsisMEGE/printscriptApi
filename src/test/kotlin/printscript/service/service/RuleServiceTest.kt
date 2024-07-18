@@ -1,6 +1,5 @@
 package printscript.service.service
 
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -10,42 +9,6 @@ import printscript.service.services.serviceImpl.RuleServiceImpl
 
 class RuleServiceTest {
     private val ruleService: RuleService = RuleServiceImpl()
-
-    @Test
-    fun test001VerifyLexerRulesSuccessFully() {
-        val lintRules =
-            listOf(
-                RulesDTO("STRING_VALUE", "\"(?:\\\\.|[^\"])*\""),
-                RulesDTO("STRING_VALUE", "'(?:\\\\.|[^'])*'"),
-                RulesDTO("DECLARATION_VARIABLE", "\\blet\\b"),
-                RulesDTO("DECLARATION_IMMUTABLE", "\\bconst\\b"),
-                RulesDTO("IF_STATEMENT", "\\bif\\b"),
-                RulesDTO("ELSE_STATEMENT", "\\}\\s*else"),
-                RulesDTO("OPERATOR_PLUS", "\\+"),
-            )
-
-        val result = ruleService.verifyLexerRules(lintRules)
-
-        assertEquals(true, result)
-    }
-
-//    @Test
-//    fun test002VerifyLexerRulesWithTypeThatDosentExistShouldThrowError(){
-//        val lintRules =
-//            listOf(
-//                RulesDTO("STRING_VALUE", "\"(?:\\\\.|[^\"])*\""),
-//                RulesDTO("THIS_TYPE_DONT_EXIST", "IM_NOT_EVEN_REGEX"),
-//                RulesDTO("DECLARATION_VARIABLE", "\\blet\\b"),
-//                RulesDTO("DECLARATION_IMMUTABLE", "\\bconst\\b"),
-//                RulesDTO("IF_STATEMENT", "\\bif\\b"),
-//                RulesDTO("ELSE_STATEMENT", "\\}\\s*else"),
-//                RulesDTO("OPERATOR_PLUS", "\\+"),
-//            )
-//
-//        assertThrows<Exception> {
-//            ruleService.verifyLexerRules(lintRules)
-//        }
-//    }
 
     @Test
     fun test003VerifyFormatterRulesSuccessfully() {

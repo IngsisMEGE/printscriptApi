@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono
 class ExecuteServiceTest {
     private val assetService: AssetService = mock()
     private val ruleManagerService: RuleManagerService = mock()
-    private val executeService: ExecuteService = ExecuteServiceImpl(assetService, ruleManagerService)
+    private val executeService: ExecuteService = ExecuteServiceImpl(assetService)
 
     val lintRules =
         listOf(
@@ -57,39 +57,39 @@ class ExecuteServiceTest {
 
     @Test
     fun test001ExecuteSnippetSuccessfully() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a : number = 1;  let b : number = 2; let c : number= a + b; println(c);"))
 
-        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf()), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf(), mapOf()), jwt).block()
 
         assertEquals("3\n", result)
     }
 
     @Test
     fun test002ExecuteSnippetWithWrongStructureShouldError() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a | NOEXISTO = 1;  let b : number = 2; let c : number= a + b; println(c"))
 
-        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf()), jwt).block() }
+        val result =
+            assertThrows<Exception> {
+                executeService.executeSnippet(
+                    SnippetDataTest(Language.Printscript, 1L, listOf(), mapOf()),
+                    jwt,
+                ).block()
+            }
 
         assertEquals("exceptions.SyntacticError: Unexpected structure at Line 1", result.message)
     }
 
     @Test
     fun test003ExecuteTestSnippetWithInputsAndReadInput() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf("1", "2"), mapOf()), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf("1", "2"), mapOf()), jwt).block()
 
         assertEquals(
             "Enter a Number: \n" +
@@ -100,26 +100,28 @@ class ExecuteServiceTest {
 
     @Test
     fun test004ExecuteTestSnippetWithInputsThatAreNotTheTypeShouldError() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = assertThrows<Exception> { executeService.executeSnippet(SnippetDataTest(1L, listOf("a"), mapOf()), jwt).block() }
+        val result =
+            assertThrows<Exception> {
+                executeService.executeSnippet(
+                    SnippetDataTest(Language.Printscript, 1L, listOf("a"), mapOf()),
+                    jwt,
+                ).block()
+            }
 
         assertEquals("El valor a no es un número válido.", result.message)
     }
 
     @Test
     fun test005ExecuteLiveSnippetWithInputsShouldSuccess() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = executeService.liveExecuteSnippet(SnippetDataInputs(1L, listOf("1", "2")), jwt).block()
+        val result = executeService.liveExecuteSnippet(SnippetDataInputs(Language.Printscript, 1L, listOf("1", "2")), jwt).block()
 
         if (result != null) {
             assertEquals(
@@ -134,8 +136,6 @@ class ExecuteServiceTest {
 
     @Test
     fun test006ExecuteLiveSnippetWhenInputIsNotPassedShouldAskForMore() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(
@@ -144,7 +144,7 @@ class ExecuteServiceTest {
             ),
         )
 
-        val result = executeService.liveExecuteSnippet(SnippetDataInputs(1L, listOf()), jwt).block()
+        val result = executeService.liveExecuteSnippet(SnippetDataInputs(Language.Printscript, 1L, listOf()), jwt).block()
 
         if (result != null) {
             assertEquals(
@@ -159,26 +159,28 @@ class ExecuteServiceTest {
 
     @Test
     fun test007ExecuteLiveSnippetWhenInputIsWrongTypeShouldError() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
 
-        val result = assertThrows<Exception> { executeService.liveExecuteSnippet(SnippetDataInputs(1L, listOf("a")), jwt).block() }
+        val result =
+            assertThrows<Exception> {
+                executeService.liveExecuteSnippet(
+                    SnippetDataInputs(Language.Printscript, 1L, listOf("a")),
+                    jwt,
+                ).block()
+            }
 
         assertEquals("El valor a no es un número válido.", result.message)
     }
 
     @Test
     fun test008ExecuteSnippetTestWithEnvs() {
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(Mono.just("let a : string = readEnv(\"env\"); println(a);"))
 
-        val result = executeService.executeSnippet(SnippetDataTest(1L, listOf(), mapOf("env" to "test")), jwt).block()
+        val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf(), mapOf("env" to "test")), jwt).block()
 
         assertEquals("test\n", result)
     }

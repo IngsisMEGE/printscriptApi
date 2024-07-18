@@ -2,6 +2,7 @@ package printscript.service.dto
 
 data class SnippetData(
     val snippetId: Long,
+    val language: Language,
 )
 
 enum class SnippetStatus {
@@ -16,6 +17,7 @@ data class StatusDTO(
 )
 
 data class SnippetDataInputs(
+    val language: Language,
     val snippetId: Long,
     val inputs: List<String>,
 )
@@ -26,7 +28,15 @@ data class SnippetDataLiveResponse(
 )
 
 data class SnippetDataTest(
+    val language: Language,
     val snippetId: Long,
     val inputs: List<String>,
     val envs: Map<String, String>,
 )
+
+enum class Language {
+    Printscript,
+    Java,
+    Python,
+    Go,
+}
