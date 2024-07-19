@@ -175,7 +175,7 @@ class FormatIntegrationTest {
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
-            post("/format/format/snippet")
+            post("/format/snippet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .header("Authorization", "Bearer ${jwt.tokenValue}"),
