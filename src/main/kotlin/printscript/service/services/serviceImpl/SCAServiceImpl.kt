@@ -2,13 +2,14 @@ package printscript.service.services.serviceImpl
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.example.PrintScript
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import printscript.service.dto.*
+import printscript.service.languagerunner.LanguageRunner
+import printscript.service.languagerunner.LanguageRunnerProvider
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.interfaces.SCAService
@@ -31,9 +32,13 @@ class SCAServiceImpl(
     ): Mono<String> {
         return getSnippet(snippet.snippetId).flatMap { snippetFile ->
             getSCARules(userData).flatMap { scaRuleFile ->
-                getLintingRules(userData).flatMap { lintingRulesFile ->
-                    Mono.just(analyze(snippetFile, scaRuleFile, lintingRulesFile))
-                }
+
+                val result = analyze(snippetFile, scaRuleFile, snippet.language)
+
+                cleanupFile(snippetFile)
+                cleanupFile(scaRuleFile)
+
+                Mono.just(result)
             }
         }
     }
@@ -44,9 +49,11 @@ class SCAServiceImpl(
     ): Mono<String> {
         val scaRules = rulesToJSONString(snippetRule.scaRules)
         val scaRulesPath = FileManagement.createTempFileWithContent(scaRules)
-        val lintingRulesPath = FileManagement.createLexerRuleFile(snippetRule.lintingRules)
         return getSnippet(snippetRule.snippetId).flatMap { snippetFile ->
-            Mono.just(analyze(snippetFile, scaRulesPath, lintingRulesPath))
+            val result = analyze(snippetFile, scaRulesPath, snippetRule.language)
+            cleanupFile(snippetFile)
+            cleanupFile(scaRulesPath)
+            Mono.just(result)
         }
     }
 
@@ -70,31 +77,26 @@ class SCAServiceImpl(
         }
     }
 
-    private fun getLintingRules(userData: Jwt): Mono<String> {
-        return ruleManagerService.getLintingRules(userData).flatMap { rules ->
-            Mono.just(FileManagement.createLexerRuleFile(rules))
-        }
-    }
-
     private fun analyze(
         snippetPath: String,
         scaRulePath: String,
-        lintingRulesPath: String,
+        language: Language,
     ): String {
-        val printScript = PrintScript(::message)
-        printScript.changeSCAConfig(scaRulePath)
-        printScript.updateRegexRules(lintingRulesPath)
-        val result = printScript.analyze(snippetPath)
-        FileManagement.deleteTempFile(snippetPath)
-        FileManagement.deleteTempFile("scaConfig.json")
-        FileManagement.deleteTempFile(scaRulePath)
-        FileManagement.deleteTempFile("lexerRules.json")
-        FileManagement.deleteTempFile(lintingRulesPath)
-        return result
+        val languageRunner: LanguageRunner = LanguageRunnerProvider.getLanguageRunner(language) { message(it) }
+
+        return languageRunner.scaSnippet(snippetPath, scaRulePath)
     }
 
     private fun message(m: String): String {
         return "hello"
+    }
+
+    private fun cleanupFile(filePath: String) {
+        try {
+            FileManagement.deleteTempFile(filePath)
+        } catch (ignored: Exception) {
+            println("Error deleting temp file: $filePath")
+        }
     }
 
     @Scheduled(fixedDelay = 1000)

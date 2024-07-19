@@ -8,15 +8,6 @@ import printscript.service.utils.FileManagement
 
 @Service
 class RuleServiceImpl() : RuleService {
-    override fun verifyLexerRules(lintingRule: List<RulesDTO>): Boolean {
-        val rulesPath = FileManagement.createLexerRuleFile(lintingRule)
-        val printScript = PrintScript(::loadInput)
-        printScript.updateRegexRules(rulesPath)
-        FileManagement.deleteTempFile(rulesPath)
-        FileManagement.deleteTempFile("lexerRules.json")
-        return true
-    }
-
     override fun verifyFormatterRules(formatterRule: List<RulesDTO>): Boolean {
         val rules = rulesToJSONString(formatterRule)
         val rulePath = FileManagement.createTempFileWithContent(rules)

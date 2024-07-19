@@ -13,9 +13,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import printscript.service.dto.RulesDTO
-import printscript.service.dto.SCASnippetWithRulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("integration")
@@ -76,7 +74,7 @@ class SCAIntegrationTest {
 
     @Test
     fun test001AnalyzeCodeSuccessfully() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -91,7 +89,7 @@ class SCAIntegrationTest {
 
     @Test
     fun test002AnalyzeCodeWithRulesSuccessfully() {
-        val snippetData = SCASnippetWithRulesDTO(1L, scaRules, lintRules)
+        val snippetData = SCASnippetWithRulesDTO(1L, scaRules, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(

@@ -36,7 +36,7 @@ class ExecuteIntegrationTest {
 
     @Test
     fun test001ExecuteTestSuccess() {
-        val snippetData = SnippetData(1L)
+        val snippetData = SnippetData(1L, Language.Printscript)
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(
@@ -51,7 +51,7 @@ class ExecuteIntegrationTest {
 
     @Test
     fun test002ExecuteLiveSuccess() {
-        val snippetData = SnippetDataInputs(1L, listOf("1"))
+        val snippetData = SnippetDataInputs(Language.Printscript, 1L, listOf("1"))
         val jsonContent = objectMapper.writeValueAsString(snippetData)
 
         mockMvc.perform(

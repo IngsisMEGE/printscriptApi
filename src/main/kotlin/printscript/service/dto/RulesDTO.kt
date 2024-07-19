@@ -10,13 +10,13 @@ data class RulesDTO(
 data class FormatSnippetWithRulesDTO(
     val snippetId: Long,
     val formatRules: List<RulesDTO>,
-    val lintingRules: List<RulesDTO>,
+    val language: Language,
 )
 
 data class SCASnippetWithRulesDTO(
     val snippetId: Long,
     val scaRules: List<RulesDTO>,
-    val lintingRules: List<RulesDTO>,
+    val language: Language,
 )
 
 data class SCASnippetWithRulesRedisDTO(

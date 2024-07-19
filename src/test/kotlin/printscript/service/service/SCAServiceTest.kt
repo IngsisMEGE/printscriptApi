@@ -7,9 +7,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.oauth2.jwt.Jwt
-import printscript.service.dto.RulesDTO
-import printscript.service.dto.SCASnippetWithRulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.interfaces.SnippetManagerService
@@ -72,9 +70,8 @@ class SCAServiceTest {
     fun test001AnalyzeCodeShouldWorkCorrectly() {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
-        val result = scaService.analyzeCode(SnippetData(1L), jwt).block()
+        val result = scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block()
 
         assertEquals("", result)
     }
@@ -83,9 +80,8 @@ class SCAServiceTest {
     fun test002AnalyzeCodeViolatingRulesShouldThrowException() {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let CSAfa_fdasf : number = 1;"))
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
-        assertEquals("Invalid typing format in line 4 row 1", scaService.analyzeCode(SnippetData(1L), jwt).block())
+        assertEquals("Invalid typing format in line 4 row 1", scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block())
     }
 
     @Test
@@ -101,9 +97,8 @@ class SCAServiceTest {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
 
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(cammelRules))
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
-        assertThrows<Exception> { scaService.analyzeCode(SnippetData(1L), jwt).block() }
+        assertThrows<Exception> { scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block() }
     }
 
     @Test
@@ -118,7 +113,18 @@ class SCAServiceTest {
                 RulesDTO("InputNoExpression", "false"),
             )
 
-        val result = scaService.analyzeCodeWithRules(SCASnippetWithRulesDTO(1L, scaRules, lintRules), jwt).block()
+        val result = scaService.analyzeCodeWithRules(SCASnippetWithRulesDTO(1L, scaRules, Language.Printscript), jwt).block()
+
+        assertEquals("", result)
+    }
+
+    @Test
+    fun test005AnalyzeCodeWithEmptyRulesShouldWorkCorrectly() {
+        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
+
+        val scaRules = listOf<RulesDTO>()
+
+        val result = scaService.analyzeCodeWithRules(SCASnippetWithRulesDTO(1L, scaRules, Language.Printscript), jwt).block()
 
         assertEquals("", result)
     }

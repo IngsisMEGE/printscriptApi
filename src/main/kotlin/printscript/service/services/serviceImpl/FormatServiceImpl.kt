@@ -2,13 +2,13 @@ package printscript.service.services.serviceImpl
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.example.PrintScript
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import printscript.service.dto.*
+import printscript.service.languagerunner.LanguageRunnerProvider
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.FormatService
 import printscript.service.services.interfaces.RuleManagerService
@@ -29,86 +29,48 @@ class FormatServiceImpl(
         snippetData: SnippetData,
         userData: Jwt,
     ): Mono<String> {
-        return ruleManagerService.getLintingRules(userData).flatMap { lintingRules ->
-            val lintingRulesFilePath = FileManagement.createLexerRuleFile(lintingRules)
-            ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
-                val formatRulesFilePath = FileManagement.createTempFileWithContent(formatRules)
-                formatSnippet(snippetData.snippetId, formatRulesFilePath, lintingRulesFilePath)
-                    .doOnTerminate {
-                        cleanupFile("formatterConfig.json")
-                        cleanupFile(formatRulesFilePath)
-                    }
+        return ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
+            var formatRulesFilePath = "src/main/resources/FormatterDefault.json"
+            if (formatRules.isNotEmpty()) {
+                formatRulesFilePath = FileManagement.createFormatRuleFile(formatRules)
             }
-                .doOnTerminate {
-                    cleanupFile("linterConfig.json")
-                    cleanupFile(lintingRulesFilePath)
-                }
-        }.onErrorResume { e ->
-            println("Error encountered: ${e.message}")
-            Mono.error(Exception(e.message, e))
+            formatSnippet(snippetData.snippetId, formatRulesFilePath, snippetData.language)
         }
+            .onErrorResume { e ->
+                println("Error encountered: ${e.message}")
+                Mono.error(Exception(e.message, e))
+            }
     }
 
     override fun formatWithRules(
         snippetDataWithRules: FormatSnippetWithRulesDTO,
         userData: Jwt,
     ): Mono<String> {
-        val formatRules = rulesToJSONString(snippetDataWithRules.formatRules)
-        val formatRulesPath = FileManagement.createTempFileWithContent(formatRules)
-        val lintingRulesPath = FileManagement.createLexerRuleFile(snippetDataWithRules.lintingRules)
-        return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath, lintingRulesPath)
-            .doOnTerminate {
-                cleanupFile("formatterConfig.json")
-                cleanupFile(formatRulesPath)
-            }
+        val formatRulesPath = FileManagement.createFormatRuleFile(snippetDataWithRules.formatRules)
+        return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath, snippetDataWithRules.language)
             .onErrorResume { e -> Mono.error(Exception("Error formatting snippet with rules", e)) }
-    }
-
-    private fun rulesToJSONString(rules: List<RulesDTO>): String {
-        val rulesMap = mutableMapOf<String, String>()
-        rules.forEach { rule ->
-            rulesMap[rule.name] = rule.value
-        }
-        return rulesMap.toString()
     }
 
     private fun formatSnippet(
         snippetId: Long,
         formatRulesFilePath: String,
-        lintingRulesFilePath: String,
+        language: Language,
     ): Mono<String> {
-        return assetService.getSnippet(snippetId)
-            .flatMap { code ->
-                formatCode(code, formatRulesFilePath, lintingRulesFilePath)
+        return getSnippet(snippetId)
+            .flatMap { snippetPath ->
+                val languageRunner =
+                    LanguageRunnerProvider.getLanguageRunner(language) {
+                        loadInput(it)
+                    }
+
+                val formatResult = languageRunner.formatSnippet(snippetPath, formatRulesFilePath)
+                Mono.just(formatResult)
             }
     }
 
-    private fun formatCode(
-        code: String,
-        formatRulesFilePath: String,
-        lintingRulesFilePath: String,
-    ): Mono<String> {
-        val snippetFilePath = FileManagement.createTempFileWithContent(code)
-        val printscript = PrintScript(::loadInput)
-
-        return try {
-            printscript.changeFormatterConfig(formatRulesFilePath)
-            printscript.updateRegexRules(lintingRulesFilePath)
-            val formatResult = printscript.format(snippetFilePath)
-            Mono.just(formatResult)
-        } catch (e: Exception) {
-            Mono.error(e)
-        } finally {
-            cleanupFile("lexerRules.json")
-            cleanupFile(snippetFilePath)
-        }
-    }
-
-    private fun cleanupFile(filePath: String) {
-        try {
-            FileManagement.deleteTempFile(filePath)
-        } catch (ignored: Exception) {
-            println("Error deleting temp file: $filePath")
+    private fun getSnippet(snippetId: Long): Mono<String> {
+        return assetService.getSnippet(snippetId).flatMap { snippet ->
+            Mono.just(FileManagement.createTempFileWithContent(snippet))
         }
     }
 

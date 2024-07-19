@@ -7,9 +7,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.oauth2.jwt.Jwt
-import printscript.service.dto.FormatSnippetWithRulesDTO
-import printscript.service.dto.RulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.interfaces.SnippetManagerService
@@ -29,55 +27,24 @@ class FormatServiceTest {
             .claim("email", "test@test.com") // Extract other claims as needed
             .build()
 
-    val lintRules =
-        listOf(
-            RulesDTO("STRING_VALUE", "\\\"(?:\\\\.|[^\"])*\\\""),
-            RulesDTO("STRING_VALUE", "'(?:\\\\.|[^'])*'"),
-            RulesDTO("DECLARATION_VARIABLE", "\\blet\\b"),
-            RulesDTO("DECLARATION_IMMUTABLE", "\\bconst\\b"),
-            RulesDTO("IF_STATEMENT", "\\bif\\b"),
-            RulesDTO("ELSE_STATEMENT", "\\}\\s*else"),
-            RulesDTO("OPERATOR_PLUS", "\\+"),
-            RulesDTO("OPERATOR_MINUS", "-"),
-            RulesDTO("OPERATOR_MULTIPLY", "\\*"),
-            RulesDTO("OPERATOR_DIVIDE", "/"),
-            RulesDTO("DOUBLE_DOTS", ":"),
-            RulesDTO("SEPARATOR", ";"),
-            RulesDTO("ASSIGNATION", "="),
-            RulesDTO("LEFT_PARENTHESIS", "\\("),
-            RulesDTO("RIGHT_PARENTHESIS", "\\)"),
-            RulesDTO("LEFT_BRACKET", "\\{"),
-            RulesDTO("RIGHT_BRACKET", "\\}"),
-            RulesDTO("METHOD_CALL", "\\b\\w+\\s*\\((?:[^()]*|\\([^()]*\\))*\\)"),
-            RulesDTO("COMA", ","),
-            RulesDTO("NUMBER_TYPE", "\\bnumber\\b"),
-            RulesDTO("STRING_TYPE", "\\bstring\\b"),
-            RulesDTO("BOOLEAN_TYPE", "\\bboolean\\b"),
-            RulesDTO("BOOLEAN_VALUE", "\\btrue\\b"),
-            RulesDTO("BOOLEAN_VALUE", "\\bfalse\\b"),
-            RulesDTO("NUMBER_VALUE", "\\b\\d+\\.?\\d*\\b"),
-            RulesDTO("VARIABLE_NAME", """(?<!")\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!")"""),
-        )
-
     @Test
     fun test001FormatShouldWorkCorrectly() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
-                "{\n" +
-                    "  \"DotFront\": \"1\",\n" +
-                    "  \"DotBack\": \"1\",\n" +
-                    "  \"EqualFront\": \"1\",\n" +
-                    "  \"EqualBack\": \"1\",\n" +
-                    "  \"amountOfLines\" : \"1\",\n" +
-                    "  \"Indentation\": \"4\"\n" +
-                    "}",
+                listOf(
+                    RulesDTO("DotFront", "1"),
+                    RulesDTO("DotBack", "1"),
+                    RulesDTO("EqualFront", "1"),
+                    RulesDTO("EqualBack", "1"),
+                    RulesDTO("amountOfLines", "1"),
+                    RulesDTO("Indentation", "4"),
+                ),
             ),
         )
 
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
 
-        val result = printScriptService.format(SnippetData(1), jwt).block()
+        val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
         assertEquals(
             "let x : number = 1;\n\nprintln(x);\n",
@@ -87,32 +54,30 @@ class FormatServiceTest {
 
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
-            printScriptService.format(SnippetData(1), jwt).block()
+            printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
         }
     }
 
     @Test
     fun test003ShouldThrowErrorWhenFormatRulesNotRetrieved() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.error(Exception("Error getting format rules")))
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
 
         assertThrows<Exception> {
-            printScriptService.format(SnippetData(1), jwt).block()
+            printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
         }
     }
 
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
-        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("invalid code"))
 
         assertThrows<Exception> {
-            printScriptService.format(SnippetData(1), jwt).block()
+            printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
         }
     }
 
@@ -120,22 +85,20 @@ class FormatServiceTest {
     fun test005ShouldCleanupTempFilesAfterSuccessfulFormatting() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
-                "{\n" +
-                    "  \"DotFront\": \"1\",\n" +
-                    "  \"DotBack\": \"1\",\n" +
-                    "  \"EqualFront\": \"1\",\n" +
-                    "  \"EqualBack\": \"1\",\n" +
-                    "  \"amountOfLines\" : \"1\",\n" +
-                    "  \"Indentation\": \"4\"\n" +
-                    "}",
+                listOf(
+                    RulesDTO("DotFront", "1"),
+                    RulesDTO("DotBack", "1"),
+                    RulesDTO("EqualFront", "1"),
+                    RulesDTO("EqualBack", "1"),
+                    RulesDTO("amountOfLines", "1"),
+                    RulesDTO("Indentation", "4"),
+                ),
             ),
         )
 
-        whenever(ruleManagerService.getLintingRules(jwt)).thenReturn(Mono.just(lintRules))
-
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
-        val result = printScriptService.format(SnippetData(1), jwt).block()
+        val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
         assertEquals(
             "let x : number = 1;\n\nprintln(x);\n",
@@ -158,7 +121,7 @@ class FormatServiceTest {
                         RulesDTO("EqualBack", "1"),
                         RulesDTO("amountOfLines", "1"),
                     ),
-                    lintRules,
+                    Language.Printscript,
                 ),
                 jwt,
             ).block()
@@ -184,7 +147,7 @@ class FormatServiceTest {
                         RulesDTO("EqualBack", "1"),
                         RulesDTO("amountOfLines", "1"),
                     ),
-                    lintRules,
+                    Language.Printscript,
                 ),
                 jwt,
             ).block()
@@ -207,7 +170,7 @@ class FormatServiceTest {
                             RulesDTO("EqualBack", "1"),
                             RulesDTO("amountOfLines", "2"),
                         ),
-                        lintRules,
+                        Language.Printscript,
                     ),
                     jwt,
                 ).block()
@@ -217,46 +180,23 @@ class FormatServiceTest {
     }
 
     @Test
-    fun test009FormatWithOtherLexerRulesShouldWork() {
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("var x:int = 1;\nprintln(x);"))
+    fun test009FormatFilesWhenRulesAreEmpty() {
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf()))
 
-        for (rule in lintRules) {
-            rule.value =
-                when (rule.name) {
-                    "NUMBER_TYPE" -> "\\bint\\b"
-                    "DECLARATION_VARIABLE" -> "\\bvar\\b"
-                    else -> rule.value
-                }
-        }
+        whenever(
+            assetService.getSnippet(1),
+        ).thenReturn(Mono.just("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);"))
 
-        val result =
-            printScriptService.formatWithRules(
-                FormatSnippetWithRulesDTO(
-                    1,
-                    listOf(
-                        RulesDTO("DotFront", "1"),
-                        RulesDTO("DotBack", "1"),
-                        RulesDTO("EqualFront", "1"),
-                        RulesDTO("EqualBack", "1"),
-                        RulesDTO("amountOfLines", "1"),
-                    ),
-                    lintRules,
-                ),
-                jwt,
-            ).block()
+        val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
         assertEquals(
-            "let x : int = 1;\n\nprintln(x);\n",
+            "let x : number = 1;\n" +
+                "\n" +
+                "println(x);\n" +
+                "let y : number = 2;\n" +
+                "\n" +
+                "println(y);\n",
             result,
         )
-
-        for (rule in lintRules) {
-            rule.value =
-                when (rule.name) {
-                    "NUMBER_TYPE" -> "\\bnumber\\b"
-                    "DECLARATION_VARIABLE" -> "\\blet\\b"
-                    else -> rule.value
-                }
-        }
     }
 }

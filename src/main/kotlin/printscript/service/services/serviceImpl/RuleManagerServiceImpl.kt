@@ -27,18 +27,17 @@ class RuleManagerServiceImpl(
     private val logger: Logger = LoggerFactory.getLogger(RuleManagerServiceImpl::class.java)
     private val ruleAPIURL = dotenv["RULE_URL"]
 
-    override fun getFormatRules(userData: Jwt): Mono<String> {
+    override fun getFormatRules(userData: Jwt): Mono<List<RulesDTO>> {
         logger.debug("Entering getFormatRules for user")
         val headers = createHeaders(userData)
-        return webClient.post()
+        return webClient.get()
             .uri("$ruleAPIURL/rules/get/user/format")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
                 handleErrorResponse(response)
             }
-            .bodyToMono<String>()
+            .bodyToMono<List<RulesDTO>>()
             .doOnSuccess {
                 logger.info("Successfully retrieved format rules for user")
             }
@@ -47,33 +46,12 @@ class RuleManagerServiceImpl(
             }
     }
 
-    override fun getLintingRules(userData: Jwt): Mono<List<RulesDTO>> {
-        logger.debug("Entering getLintingRules for user")
-        val headers = createHeaders(userData)
-        return webClient.post()
-            .uri("$ruleAPIURL/rules/get/user/lint")
-            .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue("")
-            .retrieve()
-            .onStatus({ status -> status.is4xxClientError }) { response ->
-                handleErrorResponse(response)
-            }
-            .bodyToMono<List<RulesDTO>>()
-            .doOnSuccess {
-                logger.info("Successfully retrieved linting rules for user")
-            }
-            .doOnError { error ->
-                logger.error("Error retrieving linting rules for user", error)
-            }
-    }
-
     override fun getSCARules(userData: Jwt): Mono<List<RulesDTO>> {
         logger.debug("Entering getSCARules for user")
         val headers = createHeaders(userData)
-        return webClient.post()
+        return webClient.get()
             .uri("$ruleAPIURL/rules/get/user/sca")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
                 handleErrorResponse(response)
@@ -84,25 +62,6 @@ class RuleManagerServiceImpl(
             }
             .doOnError { error ->
                 logger.error("Error retrieving SCA rules for user", error)
-            }
-    }
-
-    override fun callbackFormat(
-        snippetFormated: String,
-        userData: Jwt,
-    ): Mono<Void> {
-        val headers = createHeaders(userData)
-        return webClient.post()
-            .uri("$ruleAPIURL/rules")
-            .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue(snippetFormated)
-            .retrieve()
-            .bodyToMono(Void::class.java)
-            .doOnSuccess {
-                logger.info("Successfully posted formatted snippet for user")
-            }
-            .doOnError { error ->
-                logger.error("Error posting formatted snippet for user", error)
             }
     }
 
