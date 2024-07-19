@@ -1,5 +1,6 @@
 package printscript.service.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -19,7 +20,8 @@ class SCAServiceTest {
     private val ruleManagerService: RuleManagerService = mock()
     private val redisTemplate: RedisTemplate<String, Any> = mock()
     private val snippetManagerService: SnippetManagerService = mock()
-    private val scaService = SCAServiceImpl(assetService, ruleManagerService, redisTemplate, snippetManagerService)
+    private val objectMapper = mock(ObjectMapper::class.java)
+    private val scaService = SCAServiceImpl(assetService, ruleManagerService, redisTemplate, snippetManagerService, objectMapper)
 
     val testJwt = "test"
     val jwt =

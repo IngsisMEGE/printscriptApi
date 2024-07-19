@@ -1,6 +1,6 @@
 package printscript.service.services.serviceImpl
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,6 +26,7 @@ class FormatServiceImpl(
     private val ruleManagerService: RuleManagerService,
     private val redisTemplate: RedisTemplate<String, Any>,
     private val snippetManagerService: SnippetManagerService,
+    private val objectMapper: ObjectMapper,
 ) : FormatService {
     private val logger: Logger = LoggerFactory.getLogger(FormatServiceImpl::class.java)
 
@@ -141,7 +142,6 @@ class FormatServiceImpl(
     @Scheduled(fixedDelay = 1000)
     fun processFormatQueue() {
         logger.debug("Entering processFormatQueue")
-        val objectMapper = jacksonObjectMapper()
         val requestData = redisTemplate.opsForList().leftPop("snippet_formatting_queue")
 
         if (requestData != null) {

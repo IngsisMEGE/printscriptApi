@@ -1,5 +1,6 @@
 package printscript.service.services.serviceImpl
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.data.redis.core.RedisTemplate
@@ -25,6 +26,7 @@ class SCAServiceImpl(
     private val ruleManagerService: RuleManagerService,
     private val redisTemplate: RedisTemplate<String, Any>,
     private val snippetManagerService: SnippetManagerService,
+    private val objectMapper: ObjectMapper,
 ) : SCAService {
     override fun analyzeCode(
         snippet: SnippetData,
@@ -128,7 +130,6 @@ class SCAServiceImpl(
 
     @Scheduled(fixedDelay = 1000)
     fun processUniqueQueueSCA() {
-        val objectMapper = jacksonObjectMapper()
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
 
         if (requestData != null) {

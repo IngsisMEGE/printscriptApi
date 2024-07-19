@@ -1,5 +1,6 @@
 package printscript.service.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -18,7 +19,9 @@ class FormatServiceTest {
     private var assetService: AssetService = mock()
     private val ruleManagerService: RuleManagerService = mock()
     private val snippetManagerService: SnippetManagerService = mock()
-    private val printScriptService = FormatServiceImpl(assetService, ruleManagerService, RedisTemplate(), snippetManagerService)
+    private val objectMapper = mock(ObjectMapper::class.java)
+    private val printScriptService =
+        FormatServiceImpl(assetService, ruleManagerService, RedisTemplate(), snippetManagerService, objectMapper)
     private val testJwt = "test"
 
     val jwt =
