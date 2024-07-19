@@ -34,7 +34,7 @@ class SnippetManagerImpl(
         logger.info("Updating snippet status with id: ${newStatus.id}")
         val headers = createHeaders(userJwt)
 
-        webClient.post()
+        webClient.put()
             .uri("$snippetManagerURL/snippetManager/update/status")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .bodyValue(newStatus)
