@@ -1,5 +1,7 @@
 package printscript.service.services.serviceImpl
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import printscript.service.dto.*
@@ -12,10 +14,13 @@ import reactor.core.publisher.Mono
 
 @Service
 class ExecuteServiceImpl(private val assetService: AssetService) : ExecuteService {
+    private val logger: Logger = LoggerFactory.getLogger(ExecuteServiceImpl::class.java)
+
     override fun executeSnippet(
         snippet: SnippetDataTest,
         userData: Jwt,
     ): Mono<String> {
+        logger.info("Executing snippet with id: ${snippet.snippetId}")
         val inputs: MutableList<String> = snippet.inputs.toMutableList()
         val languageRunner =
             LanguageRunnerProvider.getLanguageRunner(snippet.language) {
@@ -36,6 +41,7 @@ class ExecuteServiceImpl(private val assetService: AssetService) : ExecuteServic
         snippet: SnippetDataInputs,
         userData: Jwt,
     ): Mono<SnippetDataLiveResponse> {
+        logger.info("Executing snippet with id: ${snippet.snippetId}")
         val inputs: MutableList<String> = snippet.inputs.toMutableList()
         var inputMessage = ""
         return getSnippet(snippet.snippetId).flatMap { snippetFile ->
@@ -62,6 +68,7 @@ class ExecuteServiceImpl(private val assetService: AssetService) : ExecuteServic
                 cleanupFile(snippetFile)
                 Mono.just(SnippetDataLiveResponse(result.toString(), true))
             } catch (e: Exception) {
+                logger.error("Error executing snippet with id: ${snippet.snippetId}", e)
                 cleanupFile(snippetFile)
                 Mono.error(e)
             }
