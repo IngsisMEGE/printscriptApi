@@ -3,6 +3,8 @@ package printscript.service.services.serviceImpl
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
@@ -28,6 +30,8 @@ class SCAServiceImpl(
     private val snippetManagerService: SnippetManagerService,
     private val objectMapper: ObjectMapper,
 ) : SCAService {
+    private val logger: Logger = LoggerFactory.getLogger(SCAServiceImpl::class.java)
+
     override fun analyzeCode(
         snippet: SnippetData,
         userData: Jwt,
@@ -115,13 +119,13 @@ class SCAServiceImpl(
             analyzeCodeWithRules(scaSnippetRules, userJWT)
                 .map {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        StatusDTO(snippetId, SnippetStatus.COMPLIANT, userJWT.claims["email"].toString()),
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        StatusDTO(snippetId, SnippetStatus.NOT_COMPLIANT, userJWT.claims["email"].toString()),
                     )
                 }
                 .subscribe()
@@ -133,24 +137,28 @@ class SCAServiceImpl(
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
 
         if (requestData != null) {
+            logger.debug("Processing SCA for snippet")
             val scaSnippetRedis: SCASnippetRedisDTO = objectMapper.readValue(requestData.toString())
             val userJWT = scaSnippetRedis.userData
             val snippetId = scaSnippetRedis.snippetId
             val language = scaSnippetRedis.language
+            logger.debug("Processing SCA for snippet with id: $snippetId")
 
             analyzeCode(
                 SnippetData(snippetId, language),
                 userJWT,
             )
                 .map {
+                    logger.info("SCA for: $snippetId has been processed")
+                    println("SCA for: $snippetId has been processed")
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        StatusDTO(snippetId, SnippetStatus.COMPLIANT, userJWT.claims["email"].toString()),
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        StatusDTO(snippetId, SnippetStatus.NOT_COMPLIANT, userJWT.claims["email"].toString()),
                     )
                 }
                 .subscribe()
