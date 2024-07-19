@@ -57,6 +57,9 @@ class Printscript(loadInput: (String) -> String) : LanguageRunner {
             printScript.updateRegexRules(GetLexerRules().getLexerRulesPath(Language.Printscript))
             printScript.changeSCAConfig(scaRulePath)
             val result = printScript.analyze(snippetPath)
+            if (result != "") {
+                throw Exception(result)
+            }
             cleanupFile(snippetPath)
             if (scaRulePath != "src/main/resources/SCADefault.json") {
                 cleanupFile(scaRulePath)
