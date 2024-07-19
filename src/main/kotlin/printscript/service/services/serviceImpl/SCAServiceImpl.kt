@@ -1,7 +1,6 @@
 package printscript.service.services.serviceImpl
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -105,9 +104,8 @@ class SCAServiceImpl(
         }
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 20000)
     fun processQueueSCA() {
-        val objectMapper = jacksonObjectMapper()
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_queue")
 
         if (requestData != null) {
@@ -132,7 +130,7 @@ class SCAServiceImpl(
         }
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 20000)
     fun processUniqueQueueSCA() {
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
 
