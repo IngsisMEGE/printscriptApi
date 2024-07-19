@@ -26,23 +26,6 @@ class FileManagement {
             }
         }
 
-        fun createLexerRuleFile(rules: List<RulesDTO>): String {
-            val objectMapper = ObjectMapper().registerModule(KotlinModule())
-
-            val rulesMap =
-                rules.associate { rule ->
-                    rule.value to
-                        mapOf(
-                            "pattern" to rule.value,
-                            "type" to rule.name,
-                        )
-                }
-
-            val jsonString = objectMapper.writeValueAsString(rulesMap)
-
-            return createTempFileWithContent(jsonString)
-        }
-
         fun creteSCARuleFile(rules: List<RulesDTO>): String {
             val map = rules.associate { it.name to it.value.toBoolean() }
 
