@@ -1,5 +1,7 @@
 package printscript.service.dto
 
+import org.springframework.security.oauth2.jwt.Jwt
+
 data class SnippetData(
     val snippetId: Long,
     val language: Language,
@@ -43,5 +45,11 @@ enum class Language {
 
 data class SnippetDataWithSnippet(
     val snippet: String,
+    val language: Language,
+)
+
+data class SCASnippetRedisDTO(
+    val snippetId: Long,
+    val userData: Jwt,
     val language: Language,
 )

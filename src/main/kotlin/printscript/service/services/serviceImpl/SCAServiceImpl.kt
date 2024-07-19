@@ -125,4 +125,34 @@ class SCAServiceImpl(
                 .subscribe()
         }
     }
+
+    @Scheduled(fixedDelay = 1000)
+    fun processUniqueQueueSCA() {
+        val objectMapper = jacksonObjectMapper()
+        val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
+
+        if (requestData != null) {
+            val scaSnippetRedis: SCASnippetRedisDTO = objectMapper.readValue(requestData.toString())
+            val userJWT = scaSnippetRedis.userData
+            val snippetId = scaSnippetRedis.snippetId
+            val language = scaSnippetRedis.language
+
+            analyzeCode(
+                SnippetData(snippetId, language),
+                userJWT,
+            )
+                .map {
+                    snippetManagerService.updateSnippetStatus(
+                        StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                    )
+                }
+                .publishOn(Schedulers.boundedElastic())
+                .doOnError {
+                    snippetManagerService.updateSnippetStatus(
+                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                    )
+                }
+                .subscribe()
+        }
+    }
 }

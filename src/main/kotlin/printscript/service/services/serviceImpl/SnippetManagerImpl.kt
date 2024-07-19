@@ -12,6 +12,6 @@ class SnippetManagerImpl(private val redisTemplate: RedisTemplate<String, Any>) 
 
     override fun updateSnippetStatus(newStatus: StatusDTO) {
         val requestData = objectMapper.writeValueAsString(newStatus)
-        redisTemplate.opsForList().rightPush("snippet_sca_queue", requestData)
+        redisTemplate.opsForList().rightPush("snippet_sca_status", requestData)
     }
 }
