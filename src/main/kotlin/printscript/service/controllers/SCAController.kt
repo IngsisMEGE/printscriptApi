@@ -27,11 +27,13 @@ class SCAController(private val scaService: SCAService, private val snippetManag
             val result = scaService.analyzeCode(snippetData, userData)
             snippetManagerService.updateSnippetStatus(
                 StatusDTO(SnippetStatus.COMPLIANT, snippetData.snippetId, userData.claims["email"].toString()),
+                userData,
             )
             ResponseEntity.ok(result)
         } catch (e: Exception) {
             snippetManagerService.updateSnippetStatus(
                 StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetData.snippetId, userData.claims["email"].toString()),
+                userData,
             )
             ResponseEntity.badRequest().body(e.message?.let { Mono.just(it) })
         }
@@ -46,11 +48,13 @@ class SCAController(private val scaService: SCAService, private val snippetManag
             val result = scaService.analyzeCodeWithRules(snippetData, userData)
             snippetManagerService.updateSnippetStatus(
                 StatusDTO(SnippetStatus.COMPLIANT, snippetData.snippetId, userData.claims["email"].toString()),
+                userData,
             )
             ResponseEntity.ok(result)
         } catch (e: Exception) {
             snippetManagerService.updateSnippetStatus(
                 StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetData.snippetId, userData.claims["email"].toString()),
+                userData,
             )
             ResponseEntity.badRequest().body(e.message?.let { Mono.just(it) })
         }

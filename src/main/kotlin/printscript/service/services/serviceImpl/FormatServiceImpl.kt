@@ -159,12 +159,14 @@ class FormatServiceImpl(
                 .map {
                     snippetManagerService.updateSnippetStatus(
                         StatusDTO(SnippetStatus.COMPLIANT, snippetID, userJWT.claims["email"].toString()),
+                        userJWT,
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
                         StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetID, userJWT.claims["email"].toString()),
+                        userJWT,
                     )
                     logger.error("Error processing format queue for snippetId: $snippetID")
                 }
