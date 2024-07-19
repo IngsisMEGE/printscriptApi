@@ -9,9 +9,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
@@ -64,3 +61,15 @@ jobs:
           secrets: |
             username=${{ github.actor  }}
             token=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update prod server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST_PROD }}
+          username: ${{ secrets.USER_PROD }}
+          key: ${{ secrets.KEY_PROD }}
+          script: |
+            cd INFRAingsis/prod/
+            docker compose -f docker-compose.prod.yml stop printscriptApi
+            docker compose -f docker-compose.prod.yml pull printscriptApi
+            docker compose -f docker-compose.prod.yml up printscriptApi -d --build
