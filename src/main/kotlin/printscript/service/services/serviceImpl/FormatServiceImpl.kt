@@ -139,7 +139,7 @@ class FormatServiceImpl(
         }
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 20000)
     fun processFormatQueue() {
         logger.debug("Entering processFormatQueue")
         val requestData = redisTemplate.opsForList().leftPop("snippet_formatting_queue")
