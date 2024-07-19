@@ -155,7 +155,6 @@ class SCAServiceImpl(
                         StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                     )
                 }
-                .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
                         StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
