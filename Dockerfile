@@ -6,9 +6,7 @@ COPY build.gradle settings.gradle gradle/ ./
 COPY src ./src
 COPY .editorconfig ./
 COPY fakeEnv .env
-COPY src/main/resources/LexerFullRules.json ./src/main/resources/LexerFullRules.json
-COPY src/main/resources/FormatterDefault.json ./src/main/resources/FormatterDefault.json
-COPY src/main/resources/SCADefault.json ./src/main/resources/SCADefault.json
+COPY src/main/resources /app/src/main/resources
 
 ARG NEW_RELIC_LICENSE_KEY
 
