@@ -1,6 +1,5 @@
 package printscript.service.controllers
 
-import org.apache.coyote.Response
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
@@ -66,7 +65,7 @@ class FormatController(private val printScriptService: FormatService, private va
     fun formatSnippetWithSnippet(
         @RequestBody snippetData: SnippetDataWithSnippet,
         @AuthenticationPrincipal userData: Jwt,
-    ) : Mono<ResponseEntity<String>> {
+    ): Mono<ResponseEntity<String>> {
         return printScriptService.formatWithSnippet(snippetData, userData)
             .map { ResponseEntity.ok(it) }
             .onErrorResume { e -> Mono.just(ResponseEntity.badRequest().body(e.message)) }

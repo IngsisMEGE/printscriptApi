@@ -42,6 +42,6 @@ enum class Language {
 }
 
 data class SnippetDataWithSnippet(
-    val snippet : String,
-    val language: Language
+    val snippet: String,
+    val language: Language,
 )

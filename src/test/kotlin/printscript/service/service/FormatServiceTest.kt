@@ -201,7 +201,7 @@ class FormatServiceTest {
     }
 
     @Test
-    fun test010FormatWithSnippetShouldWork(){
+    fun test010FormatWithSnippetShouldWork() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
                 listOf(
@@ -215,7 +215,11 @@ class FormatServiceTest {
             ),
         )
 
-        val result = printScriptService.formatWithSnippet(SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript), jwt).block()
+        val result =
+            printScriptService.formatWithSnippet(
+                SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript),
+                jwt,
+            ).block()
 
         assertEquals(
             "let x : number = 1;\n\nprintln(x);\n",
@@ -224,10 +228,14 @@ class FormatServiceTest {
     }
 
     @Test
-    fun test011FormatWithSnippetWithEmptyRulesShouldWork(){
+    fun test011FormatWithSnippetWithEmptyRulesShouldWork() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf()))
 
-        val result = printScriptService.formatWithSnippet(SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript), jwt).block()
+        val result =
+            printScriptService.formatWithSnippet(
+                SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript),
+                jwt,
+            ).block()
 
         assertEquals(
             "let x : number = 1;\n\nprintln(x);\n",

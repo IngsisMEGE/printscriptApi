@@ -18,5 +18,5 @@ interface FormatService {
     fun formatWithSnippet(
         snippet: SnippetDataWithSnippet,
         userData: Jwt,
-    ) : Mono<String>
+    ): Mono<String>
 }
