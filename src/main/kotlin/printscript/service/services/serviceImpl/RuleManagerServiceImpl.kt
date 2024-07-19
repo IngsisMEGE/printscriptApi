@@ -27,18 +27,17 @@ class RuleManagerServiceImpl(
     private val logger: Logger = LoggerFactory.getLogger(RuleManagerServiceImpl::class.java)
     private val ruleAPIURL = dotenv["RULE_URL"]
 
-    override fun getFormatRules(userData: Jwt): Mono<String> {
+    override fun getFormatRules(userData: Jwt): Mono<List<RulesDTO>> {
         logger.debug("Entering getFormatRules for user")
         val headers = createHeaders(userData)
-        return webClient.post()
+        return webClient.get()
             .uri("$ruleAPIURL/rules/get/user/format")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
                 handleErrorResponse(response)
             }
-            .bodyToMono<String>()
+            .bodyToMono<List<RulesDTO>>()
             .doOnSuccess {
                 logger.info("Successfully retrieved format rules for user")
             }
@@ -50,10 +49,9 @@ class RuleManagerServiceImpl(
     override fun getSCARules(userData: Jwt): Mono<List<RulesDTO>> {
         logger.debug("Entering getSCARules for user")
         val headers = createHeaders(userData)
-        return webClient.post()
+        return webClient.get()
             .uri("$ruleAPIURL/rules/get/user/sca")
             .headers { httpHeaders -> httpHeaders.addAll(headers) }
-            .bodyValue("")
             .retrieve()
             .onStatus({ status -> status.is4xxClientError }) { response ->
                 handleErrorResponse(response)

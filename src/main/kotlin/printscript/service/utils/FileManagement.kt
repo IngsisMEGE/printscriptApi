@@ -35,5 +35,15 @@ class FileManagement {
 
             return createTempFileWithContent(json)
         }
+
+        fun createFormatRuleFile(rules : List<RulesDTO>) : String {
+            val map = rules.associate { it.name to it.value }
+
+            val jsonObject = JsonObject(map.mapValues { JsonPrimitive(it.value) })
+
+            val json = Json.encodeToString(JsonObject.serializer(), jsonObject)
+
+            return createTempFileWithContent(json)
+        }
     }
 }

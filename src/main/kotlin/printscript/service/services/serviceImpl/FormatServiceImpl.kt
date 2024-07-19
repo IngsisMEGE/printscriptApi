@@ -30,7 +30,10 @@ class FormatServiceImpl(
         userData: Jwt,
     ): Mono<String> {
         return ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
-            val formatRulesFilePath = FileManagement.createTempFileWithContent(formatRules)
+            var formatRulesFilePath = "src/main/resources/FormatterDefault.json"
+            if (formatRules.isNotEmpty()) {
+                formatRulesFilePath = FileManagement.createFormatRuleFile(formatRules)
+            }
             formatSnippet(snippetData.snippetId, formatRulesFilePath, snippetData.language)
         }
             .onErrorResume { e ->
@@ -43,18 +46,9 @@ class FormatServiceImpl(
         snippetDataWithRules: FormatSnippetWithRulesDTO,
         userData: Jwt,
     ): Mono<String> {
-        val formatRules = rulesToJSONString(snippetDataWithRules.formatRules)
-        val formatRulesPath = FileManagement.createTempFileWithContent(formatRules)
+        val formatRulesPath = FileManagement.createFormatRuleFile(snippetDataWithRules.formatRules)
         return formatSnippet(snippetDataWithRules.snippetId, formatRulesPath, snippetDataWithRules.language)
             .onErrorResume { e -> Mono.error(Exception("Error formatting snippet with rules", e)) }
-    }
-
-    private fun rulesToJSONString(rules: List<RulesDTO>): String {
-        val rulesMap = mutableMapOf<String, String>()
-        rules.forEach { rule ->
-            rulesMap[rule.name] = rule.value
-        }
-        return rulesMap.toString()
     }
 
     private fun formatSnippet(

@@ -35,12 +35,16 @@ class Printscript(loadInput: (String) -> String) : LanguageRunner {
             printScript.changeFormatterConfig(formatRulePath)
             val result = printScript.format(snippetPath)
             cleanupFile(snippetPath)
-            cleanupFile(formatRulePath)
+            if (formatRulePath != "src/main/resources/FormatterDefault.json") {
+                cleanupFile(formatRulePath)
+            }
             cleanupFile("formatterConfig.json")
             return result
         } catch (e: Exception) {
             cleanupFile(snippetPath)
-            cleanupFile(formatRulePath)
+            if (formatRulePath != "src/main/resources/FormatterDefault.json") {
+                cleanupFile(formatRulePath)
+            }
             cleanupFile("formatterConfig.json")
             cleanupFile("lexerRules.json")
             throw e
@@ -56,12 +60,16 @@ class Printscript(loadInput: (String) -> String) : LanguageRunner {
             printScript.changeSCAConfig(scaRulePath)
             val result = printScript.analyze(snippetPath)
             cleanupFile(snippetPath)
-            cleanupFile(scaRulePath)
+            if (scaRulePath != "src/main/resources/SCADefault.json") {
+                cleanupFile(scaRulePath)
+            }
             cleanupFile("scaConfig.json")
             return result
         } catch (e: Exception) {
             cleanupFile(snippetPath)
-            cleanupFile(scaRulePath)
+            if (scaRulePath != "src/main/resources/SCADefault.json") {
+                cleanupFile(scaRulePath)
+            }
             cleanupFile("scaConfig.json")
             cleanupFile("lexerRules.json")
             throw e

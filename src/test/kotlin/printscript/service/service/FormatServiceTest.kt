@@ -31,14 +31,14 @@ class FormatServiceTest {
     fun test001FormatShouldWorkCorrectly() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
-                "{\n" +
-                    "  \"DotFront\": \"1\",\n" +
-                    "  \"DotBack\": \"1\",\n" +
-                    "  \"EqualFront\": \"1\",\n" +
-                    "  \"EqualBack\": \"1\",\n" +
-                    "  \"amountOfLines\" : \"1\",\n" +
-                    "  \"Indentation\": \"4\"\n" +
-                    "}",
+                listOf(
+                    RulesDTO("DotFront", "1"),
+                    RulesDTO("DotBack", "1"),
+                    RulesDTO("EqualFront", "1"),
+                    RulesDTO("EqualBack", "1"),
+                    RulesDTO("amountOfLines", "1"),
+                    RulesDTO("Indentation", "4"),
+                )
             ),
         )
 
@@ -54,7 +54,7 @@ class FormatServiceTest {
 
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
 
         assertThrows<Exception> {
@@ -73,7 +73,7 @@ class FormatServiceTest {
 
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
-        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just("format rules"))
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("invalid code"))
 
         assertThrows<Exception> {
@@ -85,16 +85,15 @@ class FormatServiceTest {
     fun test005ShouldCleanupTempFilesAfterSuccessfulFormatting() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
             Mono.just(
-                "{\n" +
-                    "  \"DotFront\": \"1\",\n" +
-                    "  \"DotBack\": \"1\",\n" +
-                    "  \"EqualFront\": \"1\",\n" +
-                    "  \"EqualBack\": \"1\",\n" +
-                    "  \"amountOfLines\" : \"1\",\n" +
-                    "  \"Indentation\": \"4\"\n" +
-                    "}",
+                listOf(
+                    RulesDTO("DotFront", "1"),
+                    RulesDTO("DotBack", "1"),
+                    RulesDTO("EqualFront", "1"),
+                    RulesDTO("EqualBack", "1"),
+                    RulesDTO("amountOfLines", "1"),
+                    RulesDTO("Indentation", "4"),
             ),
-        )
+        ))
 
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
@@ -177,5 +176,22 @@ class FormatServiceTest {
             }
 
         assertEquals("java.lang.Exception: Error formatting snippet with rules", exception.message)
+    }
+
+
+    @Test
+    fun test009FormatFilesWhenRulesAreEmpty(){
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf()))
+
+        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);"))
+
+        val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
+
+        assertEquals("let x : number = 1;\n" +
+                "\n" +
+                "println(x);\n" +
+                "let y : number = 2;\n" +
+                "\n" +
+                "println(y);\n", result)
     }
 }
