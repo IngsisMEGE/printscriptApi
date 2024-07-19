@@ -29,27 +29,28 @@ class AssetServiceImpl(
         logger.debug("Entering getSnippetFromBucket with snippetId: $snippetId")
         val snippetUrl = "$bucketURL/$snippetId"
         val headers = getHeader()
-        return try {
-            val snippet =
-                webClient.get()
-                    .uri(snippetUrl)
-                    .headers { httpHeaders -> httpHeaders.addAll(headers) }
-                    .retrieve()
-                    .onStatus({ it.is4xxClientError || it.is5xxServerError }, {
-                        logger.error("Error status received while getting snippet with id: $snippetId")
-                        it.bodyToMono(String::class.java)
-                            .map { errorBody -> Exception("Error getting snippet: $errorBody") }
-                    })
-                    .bodyToMono(String::class.java)
-                    .block() ?: throw Exception("Error getting snippet")
-            logger.info("Successfully retrieved snippet with id: $snippetId")
-            Mono.just(snippet)
-        } catch (e: Exception) {
-            logger.error("Error retrieving snippet with id: $snippetId", e)
-            throw e
-        } finally {
-            logger.debug("Exiting getSnippetFromBucket with snippetId: $snippetId")
-        }
+
+        return webClient.get()
+            .uri(snippetUrl)
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
+            .retrieve()
+            .onStatus({ it.is4xxClientError || it.is5xxServerError }) {
+                logger.error("Error status received while getting snippet with id: $snippetId")
+                it.bodyToMono(String::class.java)
+                    .flatMap { errorBody ->
+                        Mono.error(Exception("Error getting snippet: $errorBody"))
+                    }
+            }
+            .bodyToMono(String::class.java)
+            .doOnSuccess { snippet ->
+                logger.info("Successfully retrieved snippet with id: $snippetId")
+            }
+            .doOnError { e ->
+                logger.error("Error retrieving snippet with id: $snippetId", e)
+            }
+            .doFinally {
+                logger.debug("Exiting getSnippetFromBucket with snippetId: $snippetId")
+            }
     }
 
     override fun saveSnippet(
