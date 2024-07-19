@@ -119,7 +119,7 @@ class SCAServiceTest {
     }
 
     @Test
-    fun test005AnalyzeCodeWithEmptyRulesShouldWorkCorrectly(){
+    fun test005AnalyzeCodeWithEmptyRulesShouldWorkCorrectly() {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
 
         val scaRules = listOf<RulesDTO>()

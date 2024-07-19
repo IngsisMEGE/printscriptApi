@@ -1,7 +1,5 @@
 package printscript.service.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -36,7 +34,7 @@ class FileManagement {
             return createTempFileWithContent(json)
         }
 
-        fun createFormatRuleFile(rules : List<RulesDTO>) : String {
+        fun createFormatRuleFile(rules: List<RulesDTO>): String {
             val map = rules.associate { it.name to it.value }
 
             val jsonObject = JsonObject(map.mapValues { JsonPrimitive(it.value) })

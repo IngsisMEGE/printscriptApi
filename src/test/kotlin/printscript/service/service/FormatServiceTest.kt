@@ -38,7 +38,7 @@ class FormatServiceTest {
                     RulesDTO("EqualBack", "1"),
                     RulesDTO("amountOfLines", "1"),
                     RulesDTO("Indentation", "4"),
-                )
+                ),
             ),
         )
 
@@ -92,8 +92,9 @@ class FormatServiceTest {
                     RulesDTO("EqualBack", "1"),
                     RulesDTO("amountOfLines", "1"),
                     RulesDTO("Indentation", "4"),
+                ),
             ),
-        ))
+        )
 
         whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
 
@@ -178,20 +179,24 @@ class FormatServiceTest {
         assertEquals("java.lang.Exception: Error formatting snippet with rules", exception.message)
     }
 
-
     @Test
-    fun test009FormatFilesWhenRulesAreEmpty(){
+    fun test009FormatFilesWhenRulesAreEmpty() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf()))
 
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);"))
+        whenever(
+            assetService.getSnippet(1),
+        ).thenReturn(Mono.just("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);"))
 
         val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
-        assertEquals("let x : number = 1;\n" +
+        assertEquals(
+            "let x : number = 1;\n" +
                 "\n" +
                 "println(x);\n" +
                 "let y : number = 2;\n" +
                 "\n" +
-                "println(y);\n", result)
+                "println(y);\n",
+            result,
+        )
     }
 }
