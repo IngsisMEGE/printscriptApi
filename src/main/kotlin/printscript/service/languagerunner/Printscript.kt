@@ -17,11 +17,9 @@ class Printscript(loadInput: (String) -> String) : LanguageRunner {
             printScript.updateRegexRules(GetLexerRules().getLexerRulesPath(Language.Printscript))
             val result = printScript.start(snippetPath, envs)
             cleanupFile(snippetPath)
-            cleanupFile("lexerRules.json")
             return result
         } catch (e: Exception) {
             cleanupFile(snippetPath)
-            cleanupFile("lexerRules.json")
             throw e
         }
     }
