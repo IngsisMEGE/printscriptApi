@@ -119,13 +119,13 @@ class SCAServiceImpl(
             analyzeCodeWithRules(scaSnippetRules, userJWT)
                 .map {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(snippetId, SnippetStatus.COMPLIANT, userJWT.claims["email"].toString()),
+                        StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(snippetId, SnippetStatus.NOT_COMPLIANT, userJWT.claims["email"].toString()),
+                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                     )
                 }
                 .subscribe()
@@ -152,13 +152,13 @@ class SCAServiceImpl(
                     logger.info("SCA for: $snippetId has been processed")
                     println("SCA for: $snippetId has been processed")
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(snippetId, SnippetStatus.COMPLIANT, userJWT.claims["email"].toString()),
+                        StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
-                        StatusDTO(snippetId, SnippetStatus.NOT_COMPLIANT, userJWT.claims["email"].toString()),
+                        StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                     )
                 }
                 .subscribe()
