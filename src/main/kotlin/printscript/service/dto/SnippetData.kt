@@ -13,8 +13,8 @@ enum class SnippetStatus {
 }
 
 data class StatusDTO(
-    val status: SnippetStatus,
     val id: Long,
+    val status: SnippetStatus,
     val ownerEmail: String,
 )
 
