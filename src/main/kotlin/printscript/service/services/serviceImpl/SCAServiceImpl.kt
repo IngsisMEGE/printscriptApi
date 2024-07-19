@@ -118,12 +118,14 @@ class SCAServiceImpl(
                 .map {
                     snippetManagerService.updateSnippetStatus(
                         StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        userJWT,
                     )
                 }
                 .publishOn(Schedulers.boundedElastic())
                 .doOnError {
                     snippetManagerService.updateSnippetStatus(
                         StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                        userJWT,
                     )
                 }
                 .subscribe()
@@ -153,6 +155,7 @@ class SCAServiceImpl(
                         logger.info("About to update snippet status to COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
                             StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                            userJWT,
                         )
                         logger.info("Successfully updated snippet status to COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
@@ -165,6 +168,7 @@ class SCAServiceImpl(
                         logger.info("About to update snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
                             StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
+                            userJWT,
                         )
                         logger.info("Successfully updated snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
