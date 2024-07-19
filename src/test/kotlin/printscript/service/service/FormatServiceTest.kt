@@ -42,7 +42,7 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number =     1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:number =     1;\nprintln(x);")
 
         val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
@@ -55,7 +55,7 @@ class FormatServiceTest {
     @Test
     fun test002FormatShouldNotWorkIfLexerTokensAreNotFollowed() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto =     1;\nprintln(x)"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:NoExisto =     1;\nprintln(x)")
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
@@ -74,7 +74,7 @@ class FormatServiceTest {
     @Test
     fun test004ShouldCleanupTempFilesOnExceptionDuringFormatting() {
         whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf(RulesDTO("DotFront", "1"))))
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("invalid code"))
+        whenever(assetService.getSnippet(1)).thenReturn("invalid code")
 
         assertThrows<Exception> {
             printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
@@ -96,7 +96,7 @@ class FormatServiceTest {
             ),
         )
 
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:number = 1;\nprintln(x);")
 
         val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 
@@ -108,7 +108,7 @@ class FormatServiceTest {
 
     @Test
     fun test006FormatWithRulesShouldWorkCorrectly() {
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:number = 1;\nprintln(x);")
 
         val result =
             printScriptService.formatWithRules(
@@ -134,7 +134,7 @@ class FormatServiceTest {
 
     @Test
     fun test007FormatWithRulesShouldNotWorkIfLexerTokensAreNotFollowed() {
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:NoExisto = 1;\nprintln(x)"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:NoExisto = 1;\nprintln(x)")
 
         assertThrows<Exception> {
             printScriptService.formatWithRules(
@@ -156,7 +156,7 @@ class FormatServiceTest {
 
     @Test
     fun test008FormatWithRulesThatViolateValueShouldNotWork() {
-        whenever(assetService.getSnippet(1)).thenReturn(Mono.just("let x:number = 1;\nprintln(x);"))
+        whenever(assetService.getSnippet(1)).thenReturn("let x:number = 1;\nprintln(x);")
 
         val exception =
             assertThrows<Exception> {
@@ -185,7 +185,7 @@ class FormatServiceTest {
 
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);"))
+        ).thenReturn("let x:number=1;\nprintln(x);\n       let     y : number = 2;\nprintln(y);")
 
         val result = printScriptService.format(SnippetData(1, Language.Printscript), jwt).block()
 

@@ -33,7 +33,7 @@ class ExecuteController(private val executeService: ExecuteService) {
             .map { ResponseEntity.ok(it) }
             .onErrorResume { e ->
                 Mono.just(
-                    ResponseEntity.badRequest().body(SnippetDataLiveResponse(e.message ?: "", true)),
+                    ResponseEntity.badRequest().body(SnippetDataLiveResponse(e.message ?: "", false)),
                 )
             }
     }

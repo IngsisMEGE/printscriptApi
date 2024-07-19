@@ -66,9 +66,8 @@ class SCAServiceImpl(
     }
 
     private fun getSnippet(snippetId: Long): Mono<String> {
-        return assetService.getSnippet(snippetId).flatMap { snippet ->
-            Mono.just(FileManagement.createTempFileWithContent(snippet))
-        }
+        val snippet = assetService.getSnippet(snippetId)
+        return Mono.just(FileManagement.createTempFileWithContent(snippet))
     }
 
     private fun getSCARules(userData: Jwt): Mono<String> {

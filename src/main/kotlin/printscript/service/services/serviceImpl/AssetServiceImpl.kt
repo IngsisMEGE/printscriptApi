@@ -25,7 +25,7 @@ class AssetServiceImpl(
     private val logger: Logger = LoggerFactory.getLogger(AssetServiceImpl::class.java)
     private val bucketURL = "${dotenv["BUCKET_URL"]}/v1/asset/snippet"
 
-    override fun getSnippet(snippetId: Long): Mono<String> {
+    override fun getSnippet(snippetId: Long): String {
         logger.debug("Entering getSnippetFromBucket with snippetId: $snippetId")
         val snippetUrl = "$bucketURL/$snippetId"
         val headers = getHeader()
@@ -43,7 +43,7 @@ class AssetServiceImpl(
                     .bodyToMono(String::class.java)
                     .block() ?: throw Exception("Error getting snippet")
             logger.info("Successfully retrieved snippet with id: $snippetId")
-            Mono.just(snippet)
+            snippet
         } catch (e: Exception) {
             logger.error("Error retrieving snippet with id: $snippetId", e)
             throw e

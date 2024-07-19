@@ -107,14 +107,8 @@ class FormatServiceImpl(
 
     private fun getSnippet(snippetId: Long): Mono<String> {
         logger.debug("Entering getSnippet with snippetId: $snippetId")
-        return assetService.getSnippet(snippetId).flatMap { snippet ->
-            logger.info("Successfully retrieved snippet with id: $snippetId")
-            Mono.just(FileManagement.createTempFileWithContent(snippet))
-        }.doOnError { error ->
-            logger.error("Error retrieving snippet with id: $snippetId", error)
-        }.doFinally {
-            logger.debug("Exiting getSnippet with snippetId: $snippetId")
-        }
+        val snippet = assetService.getSnippet(snippetId)
+        return Mono.just(FileManagement.createTempFileWithContent(snippet))
     }
 
     @Scheduled(fixedDelay = 1000)

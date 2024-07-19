@@ -68,7 +68,7 @@ class SCAServiceTest {
 
     @Test
     fun test001AnalyzeCodeShouldWorkCorrectly() {
-        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
+        whenever(assetService.getSnippet(1L)).thenReturn("let abcedario : number = 1;")
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
 
         val result = scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block()
@@ -78,7 +78,7 @@ class SCAServiceTest {
 
     @Test
     fun test002AnalyzeCodeViolatingRulesShouldThrowException() {
-        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let CSAfa_fdasf : number = 1;"))
+        whenever(assetService.getSnippet(1L)).thenReturn("let CSAfa_fdasf : number = 1;")
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
 
         assertEquals("Invalid typing format in line 4 row 1", scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block())
@@ -94,7 +94,7 @@ class SCAServiceTest {
                 RulesDTO("InputNoExpression", "false"),
             )
 
-        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
+        whenever(assetService.getSnippet(1L)).thenReturn("let abcedario : number = 1;")
 
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(cammelRules))
 
@@ -103,7 +103,7 @@ class SCAServiceTest {
 
     @Test
     fun test004AnalyzeCodeWithRulesShouldWorkCorrectly() {
-        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
+        whenever(assetService.getSnippet(1L)).thenReturn("let abcedario : number = 1;")
 
         val scaRules =
             listOf(
@@ -120,7 +120,7 @@ class SCAServiceTest {
 
     @Test
     fun test005AnalyzeCodeWithEmptyRulesShouldWorkCorrectly() {
-        whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let abcedario : number = 1;"))
+        whenever(assetService.getSnippet(1L)).thenReturn("let abcedario : number = 1;")
 
         val scaRules = listOf<RulesDTO>()
 

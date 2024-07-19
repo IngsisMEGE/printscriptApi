@@ -11,7 +11,6 @@ import printscript.service.services.interfaces.AssetService
 import printscript.service.services.interfaces.ExecuteService
 import printscript.service.services.interfaces.RuleManagerService
 import printscript.service.services.serviceImpl.ExecuteServiceImpl
-import reactor.core.publisher.Mono
 
 class ExecuteServiceTest {
     private val assetService: AssetService = mock()
@@ -59,7 +58,7 @@ class ExecuteServiceTest {
     fun test001ExecuteSnippetSuccessfully() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let a : number = 1;  let b : number = 2; let c : number= a + b; println(c);"))
+        ).thenReturn("let a : number = 1;  let b : number = 2; let c : number= a + b; println(c);")
 
         val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf(), mapOf()), jwt).block()
 
@@ -70,7 +69,7 @@ class ExecuteServiceTest {
     fun test002ExecuteSnippetWithWrongStructureShouldError() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let a | NOEXISTO = 1;  let b : number = 2; let c : number= a + b; println(c"))
+        ).thenReturn("let a | NOEXISTO = 1;  let b : number = 2; let c : number= a + b; println(c")
 
         val result =
             assertThrows<Exception> {
@@ -87,7 +86,7 @@ class ExecuteServiceTest {
     fun test003ExecuteTestSnippetWithInputsAndReadInput() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
+        ).thenReturn("let x : number = readInput(\"Enter a Number: \");\nprintln(x);")
 
         val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf("1", "2"), mapOf()), jwt).block()
 
@@ -102,7 +101,7 @@ class ExecuteServiceTest {
     fun test004ExecuteTestSnippetWithInputsThatAreNotTheTypeShouldError() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
+        ).thenReturn("let x : number = readInput(\"Enter a Number: \");\nprintln(x);")
 
         val result =
             assertThrows<Exception> {
@@ -119,7 +118,7 @@ class ExecuteServiceTest {
     fun test005ExecuteLiveSnippetWithInputsShouldSuccess() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
+        ).thenReturn("let x : number = readInput(\"Enter a Number: \");\nprintln(x);")
 
         val result = executeService.liveExecuteSnippet(SnippetDataInputs(Language.Printscript, 1L, listOf("1", "2")), jwt).block()
 
@@ -139,9 +138,7 @@ class ExecuteServiceTest {
         whenever(
             assetService.getSnippet(1),
         ).thenReturn(
-            Mono.just(
-                "println(\"You will be asked to enter a number next\"); let x : number = readInput(\"Enter a Number: \");\nprintln(x);",
-            ),
+            "println(\"You will be asked to enter a number next\"); let x : number = readInput(\"Enter a Number: \");\nprintln(x);",
         )
 
         val result = executeService.liveExecuteSnippet(SnippetDataInputs(Language.Printscript, 1L, listOf()), jwt).block()
@@ -161,7 +158,7 @@ class ExecuteServiceTest {
     fun test007ExecuteLiveSnippetWhenInputIsWrongTypeShouldError() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let x : number = readInput(\"Enter a Number: \");\nprintln(x);"))
+        ).thenReturn("let x : number = readInput(\"Enter a Number: \");\nprintln(x);")
 
         val result =
             assertThrows<Exception> {
@@ -178,7 +175,7 @@ class ExecuteServiceTest {
     fun test008ExecuteSnippetTestWithEnvs() {
         whenever(
             assetService.getSnippet(1),
-        ).thenReturn(Mono.just("let a : string = readEnv(\"env\"); println(a);"))
+        ).thenReturn("let a : string = readEnv(\"env\"); println(a);")
 
         val result = executeService.executeSnippet(SnippetDataTest(Language.Printscript, 1L, listOf(), mapOf("env" to "test")), jwt).block()
 
