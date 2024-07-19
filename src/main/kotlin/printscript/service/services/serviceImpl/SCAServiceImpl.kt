@@ -154,7 +154,7 @@ class SCAServiceImpl(
                     try {
                         logger.debug("About to update snippet status to COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
-                            StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString())
+                            StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                         )
                         logger.debug("Successfully updated snippet status to COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
@@ -166,7 +166,7 @@ class SCAServiceImpl(
                     try {
                         logger.debug("About to update snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
-                            StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString())
+                            StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                         )
                         logger.debug("Successfully updated snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
