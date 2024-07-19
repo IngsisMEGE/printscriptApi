@@ -135,12 +135,12 @@ class SCAServiceImpl(
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
 
         if (requestData != null) {
-            logger.debug("Processing SCA for snippet")
+            logger.info("Processing SCA for snippet")
             val scaSnippetRedis: SCASnippetRedisDTO = objectMapper.readValue(requestData.toString(), SCASnippetRedisDTO::class.java)
             val userJWT = scaSnippetRedis.userData
             val snippetId = scaSnippetRedis.snippetId
             val language = scaSnippetRedis.language
-            logger.debug("Processing SCA for snippet with id: $snippetId")
+            logger.info("Processing SCA for snippet with id: $snippetId")
 
             analyzeCode(
                 SnippetData(snippetId, language),
@@ -150,11 +150,11 @@ class SCAServiceImpl(
                     logger.info("SCA for: $snippetId has been processed")
                     println("SCA for: $snippetId has been processed")
                     try {
-                        logger.debug("About to update snippet status to COMPLIANT for snippetId: $snippetId")
+                        logger.info("About to update snippet status to COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
                             StatusDTO(SnippetStatus.COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                         )
-                        logger.debug("Successfully updated snippet status to COMPLIANT for snippetId: $snippetId")
+                        logger.info("Successfully updated snippet status to COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
                         logger.error("Error updating snippet status to COMPLIANT for snippetId: $snippetId", e)
                     }
@@ -162,11 +162,11 @@ class SCAServiceImpl(
                 .doOnError { error ->
                     logger.error("Error during SCA processing for snippetId: $snippetId", error)
                     try {
-                        logger.debug("About to update snippet status to NOT_COMPLIANT for snippetId: $snippetId")
+                        logger.info("About to update snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                         snippetManagerService.updateSnippetStatus(
                             StatusDTO(SnippetStatus.NOT_COMPLIANT, snippetId, userJWT.claims["email"].toString()),
                         )
-                        logger.debug("Successfully updated snippet status to NOT_COMPLIANT for snippetId: $snippetId")
+                        logger.info("Successfully updated snippet status to NOT_COMPLIANT for snippetId: $snippetId")
                     } catch (e: Exception) {
                         logger.error("Error updating snippet status to NOT_COMPLIANT for snippetId: $snippetId", e)
                     }

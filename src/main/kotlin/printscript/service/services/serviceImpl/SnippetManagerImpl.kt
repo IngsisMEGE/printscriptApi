@@ -17,10 +17,11 @@ class SnippetManagerImpl(
 
     override fun updateSnippetStatus(newStatus: StatusDTO) {
         println("Entering updateSnippetStatus")
-        logger.debug("Entering updateSnippetStatus")
+        logger.info("Entering updateSnippetStatus")
         val requestData = objectMapper.writeValueAsString(newStatus)
-        logger.debug("Object of Status has Been written to String")
+        logger.info("Object of Status has Been written to String")
         redisTemplate.opsForList().rightPush("snippet_sca_status", requestData)
-        logger.debug("Queued snippet status update request for snippetId: ${newStatus.id}")
+        println("Queued snippet status update request for snippetId: ${newStatus.id}")
+        logger.info("Queued snippet status update request for snippetId: ${newStatus.id}")
     }
 }
