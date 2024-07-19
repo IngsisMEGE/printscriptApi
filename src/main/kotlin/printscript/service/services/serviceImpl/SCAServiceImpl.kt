@@ -132,7 +132,7 @@ class SCAServiceImpl(
         }
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5000)
     fun processUniqueQueueSCA() {
         val requestData = redisTemplate.opsForList().leftPop("snippet_sca_unique_queue")
 
