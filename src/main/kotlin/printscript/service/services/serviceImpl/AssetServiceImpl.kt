@@ -1,8 +1,6 @@
 package printscript.service.services.serviceImpl
 
 import io.github.cdimascio.dotenv.Dotenv
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactor.mono
 import org.apache.coyote.BadRequestException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -13,13 +11,11 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlow
 import org.springframework.web.reactive.function.client.bodyToMono
 import printscript.service.exceptions.NotFoundException
 import printscript.service.log.CorrIdFilter.Companion.CORRELATION_ID_KEY
 import printscript.service.services.interfaces.AssetService
 import reactor.core.publisher.Mono
-import java.awt.image.DataBuffer
 
 @Service
 class AssetServiceImpl(
@@ -30,30 +26,29 @@ class AssetServiceImpl(
     private val bucketURL = "${dotenv["BUCKET_URL"]}/v1/asset/snippet"
 
     override fun getSnippet(snippetId: Long): Mono<String> {
-        logger.debug("Entering getSnippet with snippetId: $snippetId")
-        return mono {
-            val response: Flow<DataBuffer> =
+        logger.debug("Entering getSnippetFromBucket with snippetId: $snippetId")
+        val snippetUrl = "$bucketURL/$snippetId"
+        val headers = getHeader()
+        return try {
+            val snippet =
                 webClient.get()
-                    .uri("$bucketURL/$snippetId")
-                    .headers { headers -> headers.addAll(getHeader()) }
+                    .uri(snippetUrl)
+                    .headers { httpHeaders -> httpHeaders.addAll(headers) }
                     .retrieve()
-                    .onStatus({ status -> status.is4xxClientError }) { response ->
-                        onStatus(response)
-                    }
-                    .bodyToFlow<DataBuffer>()
-
-            val stringBuilder = StringBuilder()
-            response.collect { dataBuffer ->
-                val eventString = dataBuffer.toString()
-                stringBuilder.append(eventString)
-            }
-            val snippet = stringBuilder.toString()
+                    .onStatus({ it.is4xxClientError || it.is5xxServerError }, {
+                        logger.error("Error status received while getting snippet with id: $snippetId")
+                        it.bodyToMono(String::class.java)
+                            .map { errorBody -> Exception("Error getting snippet: $errorBody") }
+                    })
+                    .bodyToMono(String::class.java)
+                    .block() ?: throw Exception("Error getting snippet")
             logger.info("Successfully retrieved snippet with id: $snippetId")
-            snippet
-        }.doOnError { error ->
-            logger.error("Error retrieving snippet with id: $snippetId", error)
-        }.doFinally {
-            logger.debug("Exiting getSnippet with snippetId: $snippetId")
+            Mono.just(snippet)
+        } catch (e: Exception) {
+            logger.error("Error retrieving snippet with id: $snippetId", e)
+            throw e
+        } finally {
+            logger.debug("Exiting getSnippetFromBucket with snippetId: $snippetId")
         }
     }
 
@@ -61,23 +56,26 @@ class AssetServiceImpl(
         snippetId: Long,
         snippet: String,
     ): Mono<String> {
-        logger.debug("Entering saveSnippet with snippetId: $snippetId")
+        logger.debug("Entering saveSnippetInBucket with snippetId: $snippetId")
+        val snippetUrl = "$bucketURL/$snippetId"
+        val headers = getHeader()
         return webClient.post()
-            .uri("$bucketURL/$snippetId")
+            .uri(snippetUrl)
             .bodyValue(snippet)
-            .headers { headers -> headers.addAll(getHeader()) }
+            .headers { httpHeaders -> httpHeaders.addAll(headers) }
             .retrieve()
-            .onStatus({ status -> status.is4xxClientError }) { response ->
-                onStatus(response)
-            }
-            .bodyToMono<String>()
-            .doOnSuccess {
-                logger.info("Successfully saved snippet with id: $snippetId")
-            }.doOnError { error ->
-                logger.error("Error saving snippet with id: $snippetId", error)
-            }.doFinally {
-                logger.debug("Exiting saveSnippet with snippetId: $snippetId")
-            }
+            .onStatus({ it.is4xxClientError || it.is5xxServerError }, {
+                logger.error("Error status received while saving snippet with id: $snippetId")
+                it.bodyToMono(String::class.java)
+                    .map { errorBody -> Exception("Error saving snippet: $errorBody") }
+            })
+            .toBodilessEntity()
+            .then(
+                Mono.just("Success"),
+            )
+            .doOnSuccess { logger.info("Successfully saved snippet with id: $snippetId") }
+            .doOnError { e -> logger.error("Error saving snippet with id: $snippetId", e) }
+            .doFinally { logger.debug("Exiting saveSnippetInBucket with snippetId: $snippetId") }
     }
 
     private fun onStatus(response: ClientResponse): Mono<out Throwable> {
