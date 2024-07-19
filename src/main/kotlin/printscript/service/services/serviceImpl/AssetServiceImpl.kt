@@ -42,15 +42,6 @@ class AssetServiceImpl(
                     }
             }
             .bodyToMono(String::class.java)
-            .doOnSuccess { snippet ->
-                logger.info("Successfully retrieved snippet with id: $snippetId")
-            }
-            .doOnError { e ->
-                logger.error("Error retrieving snippet with id: $snippetId", e)
-            }
-            .doFinally {
-                logger.debug("Exiting getSnippetFromBucket with snippetId: $snippetId")
-            }
     }
 
     override fun saveSnippet(
@@ -74,9 +65,6 @@ class AssetServiceImpl(
             .then(
                 Mono.just("Success"),
             )
-            .doOnSuccess { logger.info("Successfully saved snippet with id: $snippetId") }
-            .doOnError { e -> logger.error("Error saving snippet with id: $snippetId", e) }
-            .doFinally { logger.debug("Exiting saveSnippetInBucket with snippetId: $snippetId") }
     }
 
     private fun onStatus(response: ClientResponse): Mono<out Throwable> {
