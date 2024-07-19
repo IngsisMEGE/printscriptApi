@@ -78,6 +78,23 @@ class FormatServiceImpl(
             }
     }
 
+    override fun formatWithSnippet(snippet: SnippetDataWithSnippet, userData: Jwt): Mono<String> {
+        logger.debug("Entering formatWithSnippet with snippet: ${snippet.snippet}")
+        return ruleManagerService.getFormatRules(userData).flatMap { formatRules ->
+            var formatRulesFilePath = "src/main/resources/FormatterDefault.json"
+            if (formatRules.isNotEmpty()) {
+                formatRulesFilePath = FileManagement.createFormatRuleFile(formatRules)
+            }
+            val snippetPath = FileManagement.createTempFileWithContent(snippet.snippet)
+
+            val languageRunner = LanguageRunnerProvider.getLanguageRunner(snippet.language) {
+                loadInput(it)
+            }
+            val formatResult = languageRunner.formatSnippet(snippetPath, formatRulesFilePath)
+            Mono.just(formatResult)
+        }
+    }
+
     private fun formatSnippet(
         snippetId: Long,
         formatRulesFilePath: String,

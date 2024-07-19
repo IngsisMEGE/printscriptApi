@@ -40,3 +40,8 @@ enum class Language {
     Python,
     Go,
 }
+
+data class SnippetDataWithSnippet(
+    val snippet : String,
+    val language: Language
+)

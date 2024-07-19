@@ -199,4 +199,39 @@ class FormatServiceTest {
             result,
         )
     }
+
+    @Test
+    fun test010FormatWithSnippetShouldWork(){
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(
+            Mono.just(
+                listOf(
+                    RulesDTO("DotFront", "1"),
+                    RulesDTO("DotBack", "1"),
+                    RulesDTO("EqualFront", "1"),
+                    RulesDTO("EqualBack", "1"),
+                    RulesDTO("amountOfLines", "1"),
+                    RulesDTO("Indentation", "4"),
+                ),
+            ),
+        )
+
+        val result = printScriptService.formatWithSnippet(SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript), jwt).block()
+
+        assertEquals(
+            "let x : number = 1;\n\nprintln(x);\n",
+            result,
+        )
+    }
+
+    @Test
+    fun test011FormatWithSnippetWithEmptyRulesShouldWork(){
+        whenever(ruleManagerService.getFormatRules(jwt)).thenReturn(Mono.just(listOf()))
+
+        val result = printScriptService.formatWithSnippet(SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript), jwt).block()
+
+        assertEquals(
+            "let x : number = 1;\n\nprintln(x);\n",
+            result,
+        )
+    }
 }
