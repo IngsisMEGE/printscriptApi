@@ -1,8 +1,7 @@
 package printscript.service.services.interfaces
 
 import org.springframework.security.oauth2.jwt.Jwt
-import printscript.service.dto.FormatSnippetWithRulesDTO
-import printscript.service.dto.SnippetData
+import printscript.service.dto.*
 import reactor.core.publisher.Mono
 
 interface FormatService {
@@ -13,6 +12,11 @@ interface FormatService {
 
     fun formatWithRules(
         snippetDataWithRules: FormatSnippetWithRulesDTO,
+        userData: Jwt,
+    ): Mono<String>
+
+    fun formatWithSnippet(
+        snippet: SnippetDataWithSnippet,
         userData: Jwt,
     ): Mono<String>
 }

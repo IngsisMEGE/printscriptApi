@@ -168,4 +168,19 @@ class FormatIntegrationTest {
             .andExpect(status().isBadRequest)
             .andExpect(content().json("null"))
     }
+
+    @Test
+    fun test011FormatSnippetWithSnippetSuccessfully() {
+        val snippetData = SnippetDataWithSnippet("let x:number = 1;\nprintln(x);", Language.Printscript)
+        val jsonContent = objectMapper.writeValueAsString(snippetData)
+
+        mockMvc.perform(
+            post("/format/format/snippet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .header("Authorization", "Bearer ${jwt.tokenValue}"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().json("null"))
+    }
 }
