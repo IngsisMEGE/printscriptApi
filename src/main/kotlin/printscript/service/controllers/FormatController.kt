@@ -61,7 +61,7 @@ class FormatController(private val printScriptService: FormatService, private va
             .onErrorResume { e -> Mono.just(ResponseEntity.badRequest().body(e.message)) }
     }
 
-    @PostMapping("/format/snippet")
+    @PostMapping("/snippet")
     fun formatSnippetWithSnippet(
         @RequestBody snippetData: SnippetDataWithSnippet,
         @AuthenticationPrincipal userData: Jwt,
