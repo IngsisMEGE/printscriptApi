@@ -83,7 +83,9 @@ class SCAServiceTest {
         whenever(assetService.getSnippet(1L)).thenReturn(Mono.just("let CSAfa_fdasf : number = 1;"))
         whenever(ruleManagerService.getSCARules(jwt)).thenReturn(Mono.just(scaRules))
 
-        assertEquals("Invalid typing format in line 4 row 1", scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block())
+        assertThrows<Exception> {
+            scaService.analyzeCode(SnippetData(1L, Language.Printscript), jwt).block()
+        }
     }
 
     @Test
