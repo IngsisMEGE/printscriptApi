@@ -106,7 +106,7 @@ class SCAServiceImpl(
 
     @Scheduled(fixedDelay = 20000)
     fun processQueueSCA() {
-        val requestData = redisTemplate.opsForList().leftPop("snippet_sca_queue")
+        val requestData = redisTemplate.opsForList().leftPop("snippet_sca_queue_large")
 
         if (requestData != null) {
             val scaSnippetWithRulesDataRedis: SCASnippetWithRulesRedisDTO = objectMapper.readValue(requestData.toString())
